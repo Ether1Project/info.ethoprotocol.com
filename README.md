@@ -33,7 +33,7 @@ Create the npm files needed for this instance
 Next go to the config directory and create a file with the configuration for the project.
 ```
   cd config
-  vi config.production.json
+  vi config.development.json
 ```
 
 The config file has the following syntax. Replace the password and user according to Your mysql installation.
@@ -59,14 +59,14 @@ The config file has the following syntax. Replace the password and user accordin
 
 Make sure You make the file only readable to the user running late node js.
 ```
-  chown 0600 config.production.json
+  chown 0600 config.development.json
 ```
 
-Next we need to create the database called gamedev. For that we go to the project root.
+Next we need to create the database called info. For that we go to the project root.
 ```
   cd ..
-  mysqladmin -uroot -p create gamedev
-  mysql -uroot -p gamedev < basedataset.sql
+  mysqladmin -uroot -p create info
+  mysql -uroot -p info < basedataset.sql
 ```
 
 Finally we install PM2 and fire it up
@@ -75,7 +75,7 @@ Finally we install PM2 and fire it up
   pm2 start ecosystem.config.js 
 ```
 
-Now You can start the website with http://xxx.xxx.xxx.xxx:3002
-It should look like this one: http://portal.atheios.org:3002
+Now You can start the website with http://xxx.xxx.xxx.xxx:3006
+It should look like this one: http://info.ethprotocol.com
 
 # info.ethoprotocol.com
