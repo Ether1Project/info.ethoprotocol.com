@@ -1,0 +1,48 @@
+extends layout
+
+block content
+
+    // Content Header (Page header)
+    .content-header.sty-one
+        h1 Dashboard - Richlist
+        ol.breadcrumb
+            li
+                a(href='#') Home
+            li
+                i.fa.fa-angle-right
+                | Dashboard - Richlist
+    // Main content
+    .content
+        .row
+            .col-lg-3.col-sm-6.col-xs-12
+                .info-box.bg-black
+                    span.info-box-icon.bg-transparent
+                        i.ti-lock.text-white.text-white
+                    .info-box-content
+                        h6.info-box-text.text-white First 50 accounts
+                        h1.text-white= data.first50
+                        span.progress-description.text-white ETHO
+                    // /.info-box-content
+                // /.info-box
+            // /.col
+            .col-lg-3.col-sm-6.col-xs-12
+                .info-box.bg-black
+                    span.info-box-icon.bg-transparent
+                        i.ti-lock.text-white
+                    .info-box-content
+                        h6.info-box-text.text-white Remaining accounts
+                        h1.text-white= data.after50
+                        span.progress-description.text-white ETHO
+                    // /.info-box-content
+                // /.info-box
+            // /.col
+
+        .row
+            .col-lg-6.col-xlg-9
+                .info-box
+                    .d-flex.flex-wrap
+                        div
+                            h4.text-black Top 50 - Rich list
+                    .m-t-2
+                        script(src="/dist/js/chart.js")
+                        p !{chart1}

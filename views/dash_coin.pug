@@ -1,0 +1,32 @@
+extends layout
+
+block content
+
+    // Content Header (Page header)
+    .content-header.sty-one
+        h1 Dashboard - Coin
+        ol.breadcrumb
+            li
+                a(href='#') Home
+            li
+                i.fa.fa-angle-right
+                | Dashboard - Coin
+    // Main content
+    .content
+        // Small boxes (Stat box)
+        .row
+            .col-lg-4
+                .small-box.bg-aqua
+                    .inner
+                        .text-left
+                            h2 Total Sales
+                            h6 Todays Income
+                        .text-right.m-t-2
+                            h1
+                                sup
+                                    i.ti-arrow-up
+                                | $500
+                        .m-b-2
+                            span.text-white 35%
+                            .progress.bg-lightblue
+                                .progress-bar.bg-white(role='progressbar' style='width: 35%; height: 6px;' aria-valuenow='25' aria-valuemin='0' aria-valuemax='100')

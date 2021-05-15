@@ -1,0 +1,53 @@
+extends layout
+
+block content
+
+    // Content Header (Page header)
+    .content-header.sty-one
+        h1 Dashboard - Health
+        ol.breadcrumb
+            li
+                a(href='#') Home
+            li
+                i.fa.fa-angle-right
+                | Dashboard - Health
+    // Main content
+    .content
+        // Small boxes (Stat box)
+        - var colcount=0;
+        .row
+            each one in data
+                if (!one.up)
+                    .col-lg-4.col-sm-6.col-xs-12
+                        .info-box.bg-green.text-white
+                            span.info-box-icon.bg-transparent
+                                i.ti-face-smile
+                            .info-box-content
+                                h6.info-box-text.text-white
+                                    a.text-white(href=`https://${one.servername}`)= one.servername
+                                h1.text-white OK
+                                span.progress-description.text-white= one.latency
+                                    |  ms
+                                span.progress-description.text-white= one.certdate
+
+                            // /.info-box-content
+                        // /.info-box
+                    // /.col
+                else
+                    .col-lg-4.col-sm-6.col-xs-12
+                        .info-box.bg-red
+                            span.info-box-icon.bg-transparent
+                                i.ti-face-sad
+                            .info-box-content
+                                h6.info-box-text.text-white
+                                    a.text-white(href=`https://${one.servername}`)= one.servername
+                                h1.text-white NOK
+                                span.progress-description.text-white= one.latency
+                                    |  ms
+                                span.progress-description.text-white= one.certdate
+                            // /.info-box-content
+                        // /.info-box
+                    // /.col
+        - colcount++;
+        if colcount%3
+            .row

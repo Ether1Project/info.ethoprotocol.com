@@ -1,0 +1,88 @@
+extends layout
+
+block content
+
+    // Content Header (Page header)
+    .content-header.sty-one
+        h1 Dashboard - Nodes
+        ol.breadcrumb
+            li
+                a(href='#') Home
+            li
+                i.fa.fa-angle-right
+                | Dashboard - Nodes
+    // Main content
+    .content
+        // Small boxes (Stat box)
+        .row
+            .col-lg-3.col-sm-6.col-xs-12
+                .info-box.bg-darkblue
+                    span.info-box-icon.bg-transparent
+                        i.ti-layout-grid3-alt.text-white
+                    .info-box-content
+                        h6.info-box-text.text-white ETHO Gateway nodes
+                        h1.text-white= db.etho_active_gatewaynodes
+                        span.progress-description.text-white= ethofsstats.gatewaynode_reward
+                            |  ETHO per Day
+                    // /.info-box-content
+                // /.info-box
+            // /.col
+            .col-lg-3.col-sm-6.col-xs-12
+                .info-box.bg-green.text-white
+                    span.info-box-icon.bg-transparent
+                        i.ti-wallet.text-white
+                    .info-box-content
+                        h6.info-box-text.text-white ETHO maser nodes
+                        h1.text-white= db.etho_active_masternode
+                        span.progress-description.text-white= ethofsstats.masternode_reward
+                            |  ETHO per Day
+
+                    // /.info-box-content
+                // /.info-box
+            // /.col
+            .col-lg-3.col-sm-6.col-xs-12
+                .info-box.bg-aqua
+                    span.info-box-icon.bg-transparent
+                        i.ti-bar-chart
+                    .info-box-content
+                        h6.info-box-text.text-white ETHO service nodes
+                        h1.text-white= db.etho_active_servicenodes
+                        span.progress-description.text-white= ethofsstats.servicenode_reward
+                            |  ETHO per Day
+
+                    // /.info-box-content
+                // /.info-box
+            // /.col
+            .col-lg-3.col-sm-6.col-xs-12
+                .info-box.bg-blue
+                    span.info-box-icon.bg-transparent
+                        i.ti-bar-chart
+                    .info-box-content
+                        h6.info-box-text.text-white Locked ETHO
+                        h1.text-white= db.collateral
+                        span.progress-description.text-white in node use
+                    // /.info-box-content
+                // /.info-box
+
+            // /.col
+        // /.row
+        // Main row
+        .row
+            .col-lg-6.col-xlg-9
+                .info-box
+                    .d-flex.flex-wrap
+                        div
+                            h4.text-black Node distribution
+                    .m-t-2
+                        script(src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.8.0/Chart.js")
+                        p !{chart2}
+
+            .col-lg-6.col-xlg-9
+                .info-box
+                    .d-flex.flex-wrap
+                        div
+                            h4.text-black Active contracts
+                    .m-t-2
+                        p !{chart1}
+
+    // /.content

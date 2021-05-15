@@ -1,0 +1,41 @@
+extends layout
+
+block content
+
+    // Content Header (Page header)
+    .content-header.sty-one
+        h1 Dashboard - Coin
+        ol.breadcrumb
+            li
+                a(href='#') Home
+            li
+                i.fa.fa-angle-right
+                | Dashboard - Coin
+    // Main content
+    .content
+        // Small boxes (Stat box)
+        .info-box
+            h4.text-black Subscribe to events
+            p Here You can subscribe to events by enabling them and then to submit Your email. As soon as an event is triggered You will be informed. Note that events are triggered on an hourly basis, so the system might be behind by an hour.
+
+            .row
+                .col-lg-4
+                    fieldset.form-group
+                        label Enter You email
+                        input#email.form-control(type='text')
+
+            h4.text-black Configuration
+            .row
+                .col-lg-6
+                    fieldset.form-group
+                        .checkbox
+                            h5 ETHO asset health
+                            label
+                            input(name= 'etho_asset_health' type='checkbox' value='')
+                            |  Report if any of he nodes goes red
+                            p.p-1
+                        .checkbox
+                            h5 ETHO trending
+                            label
+                            input(name= 'etho_trending' type='checkbox' value='')
+                            |  Report if CMC lists ETHO as trending, when it was not before

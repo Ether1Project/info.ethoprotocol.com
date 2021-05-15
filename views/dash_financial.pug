@@ -1,0 +1,194 @@
+extends layout
+
+block content
+
+    // Content Header (Page header)
+    .content-header.sty-one
+        h1 Dashboard - Financial
+        ol.breadcrumb
+            li
+                a(href='#') Home
+            li
+                i.fa.fa-angle-right
+                | Dashboard - Financial
+    // Main content
+    .content
+        // Small boxes (Stat box)
+        .row
+            .col-lg-3.col-sm-6.col-xs-12
+                .info-box.bg-darkblue
+                    span.info-box-icon.bg-transparent
+                        i.ti-layout-grid3-alt.text-white
+                    .info-box-content
+                        h6.info-box-text.text-white ETHO blockheight
+                        h1.text-white= data.blockheight
+                        span.progress-description.text-white  Blocktime 13 secs
+                    // /.info-box-content
+                // /.info-box
+            // /.col
+            .col-lg-3.col-sm-6.col-xs-12
+                .info-box.bg-green.text-white
+                    span.info-box-icon.bg-transparent
+                        i.ti-wallet.text-white
+                    .info-box-content
+                        h6.info-box-text.text-white ETHO circulating supply
+                        h1.text-white= data.circulatingsupply
+                        span.progress-description.text-white  ETHO
+                    // /.info-box-content
+                // /.info-box
+            // /.col
+            .col-lg-3.col-sm-6.col-xs-12
+                .info-box.bg-aqua
+                    span.info-box-icon.bg-transparent
+                        i.ti-bar-chart
+                    .info-box-content
+                        h6.info-box-text.text-white ETHO current Price
+                        h1.text-white= db.coin_1_quote
+                        span.progress-description.text-white= db.coin_1_percent1d
+                            | % in 1 Day
+                    // /.info-box-content
+                // /.info-box
+            // /.col
+            .col-lg-3.col-sm-6.col-xs-12
+                .info-box.bg-orange
+                    span.info-box-icon.bg-transparent
+                        i.ti-money
+                    .info-box-content
+                        h6.info-box-text.text-white ETHO market cap
+                        h1.text-white= db.coin_1_marketcap
+                        span.progress-description.text-white= db.coin_1_percent30d
+                            | % in 30 Days
+                    // /.info-box-content
+                // /.info-box
+            // /.col
+        // /.row
+        // Main row
+        .row
+            .col-lg-6.col-xlg-9
+                .info-box
+                    .d-flex.flex-wrap
+                        div
+                            h4.text-black ETHO Market
+                    .m-t-2
+                        script(src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.8.0/Chart.js")
+                        p !{chart1}
+
+            .col-lg-6.col-xlg-9
+                .info-box
+                    .d-flex.flex-wrap
+                        div
+                            h4.text-black Market cap storage related crypto currencies
+                    .m-t-2
+                        p !{chart2}
+
+        // Small boxes (Stat box)
+        .row
+            .col-lg-3.col-sm-6.col-xs-12
+                .info-box.bg-darkblue.text-white
+                    span.info-box-icon.bg-transparent
+                        i.ti-money
+                    .info-box-content
+                        h6.info-box-text.text-white ETHO current Price
+                        h1.text-white= db.coin_1_quote
+                        span.progress-description.text-white= db.coin_1_percent1d
+                            | % in 1 Day
+                    // /.info-box-content
+                // /.info-box
+            // /.col
+            .col-lg-3.col-sm-6.col-xs-12
+                .info-box.bg-green.text-white
+                    span.info-box-icon.bg-transparent
+                        i.ti-money
+                    .info-box-content
+                        h6.info-box-text.text-white Filecoin current Price
+                        h1.text-white= db.coin_2_quote
+                        span.progress-description.text-white= db.coin_2_percent1d
+                            | % in 1 Day
+
+                    // /.info-box-content
+                // /.info-box
+            // /.col
+            .col-lg-3.col-sm-6.col-xs-12
+                .info-box.bg-aqua
+                    span.info-box-icon.bg-transparent
+                        i.ti-money
+                    .info-box-content
+                        h6.info-box-text.text-white Sia coin current Price
+                        h1.text-white= db.coin_3_quote
+                        span.progress-description.text-white= db.coin_3_percent1d
+                            | % in 1 Day
+
+                    // /.info-box-content
+                // /.info-box
+            // /.col
+            .col-lg-3.col-sm-6.col-xs-12
+                .info-box.bg-orange
+                    span.info-box-icon.bg-transparent
+                        i.ti-money
+                    .info-box-content
+                        h6.info-box-text.text-white STORJ current Price
+                        h1.text-white= db.coin_4_quote
+                        span.progress-description.text-white= db.coin_4_percent1d/100
+                            | % in 1 Day
+
+                    // /.info-box-content
+                // /.info-box
+            // /.col
+        // /.row
+
+        .row
+            .col-lg-3.col-sm-6.col-xs-12
+                .info-box.bg-darkblue.text-white
+                    span.info-box-icon.bg-transparent
+                        i.ti-settings
+                    .info-box-content
+                        h6.info-box-text.text-white ETHO supply
+                        h2.text-white= db.format_coin_1_supply
+                        span.progress-description.text-white 1
+                            | x times ETHO
+                    // /.info-box-content
+                // /.info-box
+            // /.col
+            .col-lg-3.col-sm-6.col-xs-12
+                .info-box.bg-green.text-white
+                    span.info-box-icon.bg-transparent
+                        i.ti-settings
+                    .info-box-content
+                        h6.info-box-text.text-white Filecoin supply
+                        h2.text-white= db.format_coin_2_supply
+                        span.progress-description.text-white= db.norm_coin_2_supply
+                            | x times ETHO
+
+                    // /.info-box-content
+                // /.info-box
+            // /.col
+            .col-lg-3.col-sm-6.col-xs-12
+                .info-box.bg-aqua
+                    span.info-box-icon.bg-transparent
+                        i.ti-settings
+                    .info-box-content
+                        h6.info-box-text.text-white Sia coin supply
+                        h2.text-white= db.format_coin_3_supply
+                        span.progress-description.text-white= db.norm_coin_3_supply
+                            | x times ETHO
+
+                    // /.info-box-content
+                // /.info-box
+            // /.col
+            .col-lg-3.col-sm-6.col-xs-12
+                .info-box.bg-orange
+                    span.info-box-icon.bg-transparent
+                        i.ti-settings
+                    .info-box-content
+                        h6.info-box-text.text-white STORJ supply
+                        h2.text-white= db.format_coin_4_supply
+                        span.progress-description.text-white= db.norm_coin_4_supply
+                            | x times ETHO
+
+                    // /.info-box-content
+                // /.info-box
+            // /.col
+        // /.row
+
+
+    // /.content

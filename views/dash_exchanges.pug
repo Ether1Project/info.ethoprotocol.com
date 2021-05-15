@@ -1,0 +1,97 @@
+extends layout
+
+block content
+
+    // Content Header (Page header)
+    .content-header.sty-one
+        h1 Dashboard - Exchanges
+        ol.breadcrumb
+            li
+                a(href='#') Home
+            li
+                i.fa.fa-angle-right
+                | Dashboard - Exchanges
+    // Main content
+    .content
+        // Small boxes (Stat box)
+        .row
+            .col-lg-3.col-sm-6.col-xs-12
+                .info-box.bg-black
+                    span.info-box-icon.bg-transparent
+                        i.ti-exchange-vertical.text-white
+                    .info-box-content
+                        h6.info-box-text.text-white All exchanges
+                        h1.text-white= data.exchange_all
+                        span.progress-description.text-white ETHO
+                    // /.info-box-content
+                // /.info-box
+            // /.col
+            .col-lg-3.col-sm-6.col-xs-12
+                .info-box.bg-black
+                    span.info-box-icon.bg-transparent
+                        i.ti-lock.text-white
+                    .info-box-content
+                        h6.info-box-text.text-white Locked in exchanges
+                        h1.text-white= data.exchange_percent
+                        span.progress-description.text-white %
+                    // /.info-box-content
+                // /.info-box
+            // /.col
+
+        .row
+            .col-lg-3.col-sm-6.col-xs-12
+                .info-box.bg-black
+                    span.info-box-icon.bg-transparent
+                        i.ti-exchange-vertical.text-white
+                    .info-box-content
+                        h6.info-box-text.text-white STEX
+                        h1.text-white= data.exchange_stex
+                        span.progress-description.text-white ETHO
+                    // /.info-box-content
+                // /.info-box
+            // /.col
+            .col-lg-3.col-sm-6.col-xs-12
+                .info-box.bg-black
+                    span.info-box-icon.bg-transparent
+                        i.ti-exchange-vertical.text-white
+                    .info-box-content
+                        h6.info-box-text.text-white Probit
+                        h1.text-white= data.exchange_probit
+                        span.progress-description.text-white ETHO
+                    // /.info-box-content
+                // /.info-box
+            // /.col
+            .col-lg-3.col-sm-6.col-xs-12
+                .info-box.bg-black
+                    span.info-box-icon.bg-transparent
+                        i.ti-exchange-vertical.text-white
+                    .info-box-content
+                        h6.info-box-text.text-white Graviex
+                        h1.text-white= data.exchange_graviex
+                        span.progress-description.text-white ETHO
+                    // /.info-box-content
+                // /.info-box
+            // /.col
+            .col-lg-3.col-sm-6.col-xs-12
+                .info-box.bg-black
+                    span.info-box-icon.bg-transparent
+                        i.ti-exchange-vertical.text-white
+                    .info-box-content
+                        h6.info-box-text.text-white Mercatox
+                        h1.text-white= data.exchange_mercatox
+                        span.progress-description.text-white ETHO
+                    // /.info-box-content
+                // /.info-box
+            // /.col
+
+        // /.row
+        .row
+            .col-lg-12.col-xlg-12
+                .info-box
+                    .d-flex.flex-wrap
+                        div
+                            h4.text-black Exchange wallets
+                    .m-t-2
+                        script(src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.8.0/Chart.js")
+                        p !{chart1}
+

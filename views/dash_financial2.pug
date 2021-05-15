@@ -1,0 +1,33 @@
+extends layout
+
+block content
+
+    // Content Header (Page header)
+    .content-header.sty-one
+        h1 Dashboard - If I just had
+        ol.breadcrumb
+            li
+                a(href='#') Home
+            li
+                i.fa.fa-angle-right
+                | Dashboard - If I just had ...
+    // Main content
+    .content
+        // Small boxes (Stat box)
+        .row
+            .col-lg-4.m-b-3
+                // Card
+                .card
+                    img.card-img-top.img-responsive(src='dist/img/if_etho.png' alt='If You have invested 1000 USD in ETHO')
+                    .card-body
+                        h4.card-title ... it would be worth today
+                        h2.btn-lg.btn-dark.text-lg-center= data.year
+                            |  USD
+                        p.card-text.text-center And we just getting started...
+                // Card
+
+            // /.col
+        // /.row
+
+
+    // /.content
