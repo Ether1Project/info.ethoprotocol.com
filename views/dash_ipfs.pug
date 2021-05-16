@@ -1,0 +1,48 @@
+extends layout
+
+block content
+
+    // Content Header (Page header)
+    .content-header.sty-one
+        h1 Dashboard - IPFS data
+        ol.breadcrumb
+            li
+                a(href='#') Home
+            li
+                i.fa.fa-angle-right
+                | Dashboard - IPFS data
+    // Main content
+    .content
+        // Small boxes (Stat box)
+        .row
+            .col-lg-3.col-sm-6.col-xs-12
+                .info-box.bg-darkblue
+                    span.info-box-icon.bg-transparent
+                        i.ti-layout-grid3-alt.text-white
+                    .info-box-content
+                        h6.info-box-text.text-white Cost per MB for 100k blocks
+                        h1.text-white= data.cost
+                        span.progress-description.text-white  ETHO
+                    // /.info-box-content
+                // /.info-box
+            // /.col
+        // /.row
+        // Main row
+        .row
+            .col-lg-12.col-xlg-12
+                .info-box
+                    .d-flex.flex-wrap
+                        div
+                            h4.text-black IPFS contracts historic data
+                    .m-t-2
+                        script(src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.8.0/Chart.js")
+                        p !{chart1}
+        .row
+            .col-lg-12.col-xlg-12
+                .info-box
+                    .d-flex.flex-wrap
+                        div
+                            h4.text-black IPFS starage in GigaByte
+                    .m-t-2
+                        p !{chart2}
+

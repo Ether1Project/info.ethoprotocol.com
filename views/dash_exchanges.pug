@@ -86,6 +86,108 @@ block content
 
         // /.row
         .row
+            if data.stexFluctuation >= 0
+                .col-lg-3.col-sm-6.col-xs-12
+                    .info-box.bg-green
+                        span.info-box-icon.bg-transparent
+                            i.ti-exchange-vertical.text-white
+                        .info-box-content
+                            h6.info-box-text.text-white STEX fluctuation
+                            h1.text-white= data.stexFluctuation
+                            span.progress-description.text-white %
+                        // /.info-box-content
+                    // /.info-box
+                // /.col
+            else
+                .col-lg-3.col-sm-6.col-xs-12
+                    .info-box.bg-red
+                        span.info-box-icon.bg-transparent
+                            i.ti-exchange-vertical.text-white
+                        .info-box-content
+                            h6.info-box-text.text-white STEX fluctuation
+                            h1.text-white= data.stexFluctuation
+                            span.progress-description.text-white %
+                        // /.info-box-content
+                    // /.info-box
+                // /.col
+            if data.probitFluctuation >= 0
+                .col-lg-3.col-sm-6.col-xs-12
+                    .info-box.bg-green
+                        span.info-box-icon.bg-transparent
+                            i.ti-exchange-vertical.text-white
+                        .info-box-content
+                            h6.info-box-text.text-white Probit fluctuation
+                            h1.text-white= data.probitFluctuation
+                            span.progress-description.text-white %
+                        // /.info-box-content
+                    // /.info-box
+                // /.col
+            else
+                .col-lg-3.col-sm-6.col-xs-12
+                    .info-box.bg-red
+                        span.info-box-icon.bg-transparent
+                            i.ti-exchange-vertical.text-white
+                        .info-box-content
+                            h6.info-box-text.text-white Probit fluctuation
+                            h1.text-white= data.probitFluctuation
+                            span.progress-description.text-white %
+                        // /.info-box-content
+                    // /.info-box
+                // /.col
+            if (data.graviexFluctuation >= 0)
+                .col-lg-3.col-sm-6.col-xs-12
+                    .info-box.bg-green
+                        span.info-box-icon.bg-transparent
+                            i.ti-exchange-vertical.text-white
+                        .info-box-content
+                            h6.info-box-text.text-white Graviex fluctuation
+                            h1.text-white= data.graviexFluctuation
+                            span.progress-description.text-white %
+                        // /.info-box-content
+                    // /.info-box
+                // /.col
+            else
+                .col-lg-3.col-sm-6.col-xs-12
+                    .info-box.bg-red
+                        span.info-box-icon.bg-transparent
+                            i.ti-exchange-vertical.text-white
+                        .info-box-content
+                            h6.info-box-text.text-white Graviex fluctuation
+                            h1.text-white= data.graviexFluctuation
+                            span.progress-description.text-white %
+                        // /.info-box-content
+                    // /.info-box
+                // /.col
+            if data.mercatoxFluctuation >= 0
+                .col-lg-3.col-sm-6.col-xs-12
+                    .info-box.bg-green
+                        span.info-box-icon.bg-transparent
+                            i.ti-exchange-vertical.text-white
+                        .info-box-content
+                            h6.info-box-text.text-white Mercatox fluctuation
+                            h1.text-white= data.mercatoxFluctuation
+                            span.progress-description.text-white %
+                        // /.info-box-content
+                    // /.info-box
+                // /.col
+            else
+                .col-lg-3.col-sm-6.col-xs-12
+                    .info-box.bg-red
+                        span.info-box-icon.bg-transparent
+                            i.ti-exchange-vertical.text-white
+                        .info-box-content
+                            h6.info-box-text.text-white Mercatox fluctuation
+                            h1.text-white= data.mercatoxFluctuation
+                            span.progress-description.text-white %
+                        // /.info-box-content
+                    // /.info-box
+                // /.col
+
+
+        // /.row
+
+
+        .row
             .col-lg-12.col-xlg-12
                 .info-box
                     .d-flex.flex-wrap
@@ -94,4 +196,13 @@ block content
                     .m-t-2
                         script(src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.8.0/Chart.js")
                         p !{chart1}
+
+        .row
+            .col-lg-12.col-xlg-12
+                .info-box
+                    .d-flex.flex-wrap
+                        div
+                            h4.text-black Locked in exchanges
+                    .m-t-2
+                        p !{chart2}
 

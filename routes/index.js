@@ -4,6 +4,7 @@ const got = require('got');
 const ping = require('ping');
 const checkCertExpiration = require('check-cert-expiration');
 const tabletojson = require('tabletojson').Tabletojson;
+const ethofsSDK = require('@ethofs/sdk');
 
 
 
@@ -54,7 +55,6 @@ router.get('/dash_richlist', async function(req, res, next) {
                     // Fetch richlist and do some magic
                     tablesAsJson = tabletojson.convert(html);
                     let i;
-                    console.log(html);
                     let top50share = [];
                     let labelstr = [];
                     let obj;
@@ -73,8 +73,6 @@ router.get('/dash_richlist', async function(req, res, next) {
                                 break;
                         }
                     }
-                    console.log(top50share);
-                    console.log(max);
                     labelstr.push(50);
                     let data = [];
                     data.first50 = MISC_numberFormating(Math.round(((100 - max) * supply) / 100));
@@ -115,13 +113,14 @@ router.get('/dash_richlist', async function(req, res, next) {
                     });
             
                 })
-                    .catch((error) => {
-                        console.error(error);
-                    })
+                .catch((error) => {
+                    console.error(error);
+                })
+            await browser.close();
+    
             })
     
     
-            await browser.close();
         })
         .catch((error) => {
             console.error(error);
@@ -137,19 +136,114 @@ router.get('/dash_richlist', async function(req, res, next) {
 
 /* GET home page. */
 router.get('/dash_ipfs', async function(req, res, next) {
-    var currency;
-    var title;
+    let contracts=[];
+    let networkStorage=[];
+    let data=[];
+    let bd;
     
     logger.info("#server.routes.index.get: %s", req.headers.host);
     
     const {body} = await got('http://api.ether1.org/ethofsapi.php?api=network_stats_archive');
     bd=JSON.parse(body);
+    console.log(countProperties(bd));
+    let i=0;
+    let k=0;
+    let labels=[];
+    let obj;
+    
+    for (key in bd) {
+        if (bd.hasOwnProperty(key)) {
+            if (!(k%100)) {
+                contracts[i] = parseInt(bd[key].activeUploadContracts).toString();
+                networkStorage[i] = parseInt(bd[key].totalNetworkStorageUsed)/1E9;
+                labels.push(1000000 + i*100000);
+                i = i + 1;
+            }
+            k=k+1;
+        }
+    }
+    
+    let ethofs = ethofsSDK(global.config.ETHOSERIAL);
+    
+    const options = {
+        ethofsOptions: {
+            hostingContractDuration: parseInt(100000),
+            hostingContractSize: parseInt(1E6)
+        }
+    };
+    data.cost=await ethofs.calculateCost(options)
+        .then((result) => {
+            //handle results here
+            logger.info("#server.routes.index.get.dash_ipfs: %s", result);
+            return(result.uploadCost/1E18);
+            })
+        .catch((err) => {
+            //handle error here
+            logger.error("#server.routes.index.get.dash_ipfs: %s", err);
+            return(0);
+            })
+    
+    data.cost=Math.round(data.cost*10000)/10000;
+    
+    
+    
+    let chartobj1 = {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets:
+                [{
+                    'label': 'Contracts over time',
+                    data: contracts,
+                    backgroundColor: 'rgb(26,238,26)'
+                }
+                ]
+            
+        },
+        options: {
+            responsive: true
+        }
+    };
+    
+    // Create charts
+    let content1 = "";
+    content1 += "<canvas id='chartjs-1' class='chartjs' width='1540' height='770' style='display: block; height: 385px; width: 770px;'></canvas>";
+    content1 += "<script>new Chart(document.getElementById('chartjs-1')," + JSON.stringify(chartobj1) + ");</script>";
+    
+    let chartobj2 = {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets:
+                [{
+                    'label': 'Storage in GB over time',
+                    data: networkStorage,
+                    backgroundColor: 'rgb(2,172,250)'
+                }
+                ]
+            
+        },
+        options: {
+            responsive: true
+        }
+    };
+    
+    // Create charts
+    let content2 = "";
+    content2 += "<canvas id='chartjs-2' class='chartjs' width='1540' height='770' style='display: block; height: 385px; width: 770px;'></canvas>";
+    content2 += "<script>new Chart(document.getElementById('chartjs-2')," + JSON.stringify(chartobj2) + ");</script>";
     
     res.render('dash_ipfs', {
         title: 'ETHO | IPFS dashboard',
-        data: bd
+        data: data,
+        chart1: content1,
+        chart2: content2
     });
 });
+
+function countProperties(obj) {
+    return Object.keys(obj).length;
+}
 
 /* GET home page. */
 router.get('/dash_exchanges', async function(req, res, next) {
@@ -162,9 +256,8 @@ router.get('/dash_exchanges', async function(req, res, next) {
     
     const {body} = await got('https://api.ether1.org/api.php?api=chain_summary');
     bd=JSON.parse(body);
-    console.log(bd);
     
-    let vsql="SELECT * FROM info ORDER BY id DESC LIMIT 1";
+    let vsql="SELECT * FROM info ORDER BY id DESC LIMIT 25";
     
     pool.query(vsql)
         .then(async (inforows) => {
@@ -176,85 +269,114 @@ router.get('/dash_exchanges', async function(req, res, next) {
                 exchange_probit: MISC_numberFormating(inforows[0].etho_exchange_probit),
                 exchange_mercatox: MISC_numberFormating(inforows[0].etho_exchange_mercatox),
                 exchange_all: MISC_numberFormating(exchange_all),
-                exchange_percent: Math.round(exchange_all/bd.circulating_supply*10000)/100
+                exchange_percent: Math.round(exchange_all/bd.circulating_supply*10000)/100,
+                stexFluctuation: Math.round((inforows[0].etho_exchange_stex/inforows[23].etho_exchange_stex*100-100)*100)/100,
+                graviexFluctuation: Math.round((inforows[0].etho_exchange_graviex/inforows[23].etho_exchange_graviex*100-100)*100)/100,
+                probitFluctuation: Math.round((inforows[0].etho_exchange_probit/inforows[23].etho_exchange_probit*100-100)*100)/100,
+                mercatoxFluctuation: Math.round((inforows[0].etho_exchange_mercatox/inforows[23].etho_exchange_mercatox*100-100)*100)/100
             })
 
             
-            let vsql="SELECT * FROM info ORDER BY id DESC LIMIT 25";
+            // Generate chart
+            logger.info("#server.routes.index.get.dash_exchanges: Generating chart");
+            
+            let exchange_stex = [];
+            let exchange_graviex = [];
+            let exchange_mercatox = [];
+            let exchange_probit = [];
+            let i;
+            for (i = 0; i < inforows.length; i++) {
+                if (inforows[i].etho_exchange_stex == null) {
+                    inforows[i].etho_exchange_stex = 0;
+                    inforows[i].etho_exchange_graviex = 0;
+                    inforows[i].etho_exchange_probit = 0;
+                    inforows[i].etho_exchange_mercatox = 0;
+
+                }
+            }
+            for (i = 0; i < inforows.length; i++) {
+                exchange_stex[i] = (inforows[i].etho_exchange_stex);
+                exchange_graviex[i] = (inforows[i].etho_exchange_graviex);
+                exchange_probit[i] = (inforows[i].etho_exchange_probit);
+                exchange_mercatox[i] = (inforows[i].etho_exchange_mercatox);
+            }
     
-            let content=await pool.query(vsql)
-                .then((inforows) => {
-                    if (inforows != undefined) {
-                        // Generate chart
-                        let exchange_stex = [];
-                        let exchange_graviex = [];
-                        let exchange_mercatox = [];
-                        let exchange_probit = [];
-                        let i;
-                        for (i = 0; i < inforows.length; i++) {
-                            if (inforows[i].etho_exchange_stex == null) {
-                                inforows[i].etho_exchange_stex = 0;
-                                inforows[i].etho_exchange_graviex = 0;
-                                inforows[i].etho_exchange_probit = 0;
-                                inforows[i].etho_exchange_mercatox = 0;
-    
-                            }
+            let chartobj1 = {
+                type: 'line',
+                data: {
+                    labels:
+                        ['Now', '-1hr', '-2hr', '-3hr', '-4hr', '-5hr', '-6hr', '-7hr', '-8hr', '-9hr', '-10hr', '-11hr', '-12hr', '-13hr', '-14hr', '-15hr', '-16hr', '-17hr', '-18hr', '-19hr', '-20hr', '-21hr', '-22hr1', '-23hr'],
+                    datasets:
+                        [{
+                            'label': 'Marcatox coin wallet',
+                            data: exchange_mercatox,
+                            backgroundColor: 'rgb(26,238,26)'
+                        },{
+                            'label': 'Graviex coin wallet',
+                            data: exchange_graviex,
+                            backgroundColor: 'rgb(239,239,12)'
+                        },{
+                            'label': 'Probit coin wallet',
+                            data: exchange_probit,
+                            backgroundColor: 'rgb(236,13,13)'
+                        },{
+                            'label': 'STEX coin wallet',
+                            data: exchange_stex,
+                            backgroundColor: 'rgb(8,168,241)'
                         }
-                        for (i = 0; i < inforows.length; i++) {
-                            exchange_stex[i] = (inforows[i].etho_exchange_stex);
-                            exchange_graviex[i] = (inforows[i].etho_exchange_graviex);
-                            exchange_probit[i] = (inforows[i].etho_exchange_probit);
-                            exchange_mercatox[i] = (inforows[i].etho_exchange_mercatox);
+                        ]
+            
+                },
+                options: {
+                    responsive: true
+                }
+            };
+            // Create charts
+            let content = "";
+            content += "<canvas id='chartjs-1' class='chartjs' width='1540' height='770' style='display: block; height: 385px; width: 770px;'></canvas>";
+            content += "" +
+                "<script>new Chart(document.getElementById('chartjs-1')," + JSON.stringify(chartobj1) + ");</script>";
     
+            let exchanges_percentage=[];
+            for (i = 0; i < inforows.length; i++) {
+                exchanges_percentage[i]=(inforows[i].etho_exchange_stex+inforows[i].etho_exchange_graviex+inforows[i].etho_exchange_probit+inforows[i].etho_exchange_mercatox)/inforows[i].coin_1_supply;
+            }
+    
+            let chartobj2 = {
+                type: 'line',
+                data: {
+                    labels:
+                        ['Now', '-1hr', '-2hr', '-3hr', '-4hr', '-5hr', '-6hr', '-7hr', '-8hr', '-9hr', '-10hr', '-11hr', '-12hr', '-13hr', '-14hr', '-15hr', '-16hr', '-17hr', '-18hr', '-19hr', '-20hr', '-21hr', '-22hr1', '-23hr'],
+                    datasets:
+                        [{
+                            'label': 'Percentage locked',
+                            data: exchanges_percentage,
+                            backgroundColor: 'rgb(129,128,128)'
                         }
-                
-                        let chartobj2 = {
-                            type: 'line',
-                            data: {
-                                labels:
-                                    ['Now', '-1hr', '-2hr', '-3hr', '-4hr', '-5hr', '-6hr', '-7hr', '-8hr', '-9hr', '-10hr', '-11hr', '-12hr', '-13hr', '-14hr', '-15hr', '-16hr', '-17hr', '-18hr', '-19hr', '-20hr', '-21hr', '-22hr1', '-23hr'],
-                                datasets:
-                                    [{
-                                        'label': 'Marcatox coin wallet',
-                                        data: exchange_mercatox,
-                                        backgroundColor: 'rgb(26,238,26)'
-                                    },{
-                                        'label': 'Graviex coin wallet',
-                                        data: exchange_graviex,
-                                        backgroundColor: 'rgb(239,239,12)'
-                                    },{
-                                        'label': 'Probit coin wallet',
-                                        data: exchange_probit,
-                                        backgroundColor: 'rgb(236,13,13)'
-                                    },{
-                                        'label': 'STEX coin wallet',
-                                        data: exchange_stex,
-                                        backgroundColor: 'rgb(8,168,241)'
-                                    }
-                                    ]
-                        
-                            },
-                            options: {
-                                responsive: true
-                            }
-                        };
-                        // Create charts
-                        let content = "";
-                        content += "<canvas id='chartjs-2' class='chartjs' width='1540' height='770' style='display: block; height: 385px; width: 770px;'></canvas>";
-                        content += "" +
-                            "<script>new Chart(document.getElementById('chartjs-2')," + JSON.stringify(chartobj2) + ");</script>";
-                        return(content);
-                    }
-                })
-                .catch((error)=> {
-                    logger.error("%s", error);
-                })
+                        ]
+            
+                },
+                options: {
+                    responsive: true
+                }
+            };
+            // Create charts
+            let content2 = "";
+            content2 += "<canvas id='chartjs-2' class='chartjs' width='1540' height='770' style='display: block; height: 385px; width: 770px;'></canvas>";
+            content2 += "<script>new Chart(document.getElementById('chartjs-2')," + JSON.stringify(chartobj2) + ");</script>";
+    
     
             res.render('dash_exchanges', {
                 title: 'ETHO | Exchange dashboard',
                 data: data[0],
-                chart1: content
+                chart1: content,
+                chart2: content2
             });
+    
+        })
+        .catch((error)=>{
+            logger.error("#server.routes.index.get.dash_exchanges: Error %s", error);
+            
     
         })
 });
