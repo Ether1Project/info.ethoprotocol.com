@@ -53,7 +53,8 @@ The config file has the following syntax. Replace the password and user accordin
   "NODEMAIL_PASS": "zzz",
   "PORT": "3006",
   "CAPTCHAKEY": "Not yet needed",
-  "CMCAPIKEY": "Private key here"
+  "CMCAPIKEY": "Private key here",
+  "ETHOSERIAL": "Serial number of an ETHO address"
 }
 ```
 
