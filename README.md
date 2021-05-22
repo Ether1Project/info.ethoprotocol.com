@@ -77,6 +77,6 @@ Finally we install PM2 and fire it up
 ```
 
 Now You can start the website with http://xxx.xxx.xxx.xxx:3006
-It should look like this one: http://info.ethprotocol.com
+It should look like this one: https://info.ethoprotocol.com
 
 # info.ethoprotocol.com
