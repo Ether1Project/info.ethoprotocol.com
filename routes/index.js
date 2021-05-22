@@ -563,7 +563,7 @@ router.get('/dash_financial', function(req, res, next) {
                                 [{
                                     'label': 'ETHO market cap (MUSD)',
                                     data: marketcapList,
-                                    backgroundColor: 'rgb(100,26,42)'
+                                    backgroundColor: 'rgb(171,47,73)'
                                 }]
                         },
                         options: {
