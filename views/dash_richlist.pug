@@ -15,12 +15,25 @@ block content
     .content
         .row
             .col-lg-3.col-sm-6.col-xs-12
+                .info-box.bg-blue
+                    span.info-box-icon.bg-transparent
+                        i.ti-lock.text-white.text-white
+                    .info-box-content
+                        h6.info-box-text.text-white Total supply
+                        h1.text-white= data.supply
+                        span.progress-description.text-white ETHO
+                    // /.info-box-content
+                // /.info-box
+            // /.col
+
+        .row
+            .col-lg-3.col-sm-6.col-xs-12
                 .info-box.bg-black
                     span.info-box-icon.bg-transparent
                         i.ti-lock.text-white.text-white
                     .info-box-content
-                        h6.info-box-text.text-white First 50 accounts
-                        h1.text-white= data.first50
+                        h6.info-box-text.text-white Top 45 accounts
+                        h1.text-white= data.richlist
                         span.progress-description.text-white ETHO
                     // /.info-box-content
                 // /.info-box
@@ -30,19 +43,49 @@ block content
                     span.info-box-icon.bg-transparent
                         i.ti-lock.text-white
                     .info-box-content
-                        h6.info-box-text.text-white Remaining accounts
-                        h1.text-white= data.after50
+                        h6.info-box-text.text-white Remaining
+                        h1.text-white= data.rest
+                        span.progress-description.text-white ETHO
+                    // /.info-box-content
+                // /.info-box
+            // /.col
+            .col-lg-3.col-sm-6.col-xs-12
+                .info-box.bg-black
+                    span.info-box-icon.bg-transparent
+                        i.ti-lock.text-white.text-white
+                    .info-box-content
+                        h6.info-box-text.text-white Exchanges
+                        h1.text-white= data.exchanges
+                        span.progress-description.text-white ETHO
+                    // /.info-box-content
+                // /.info-box
+            // /.col
+            .col-lg-3.col-sm-6.col-xs-12
+                .info-box.bg-black
+                    span.info-box-icon.bg-transparent
+                        i.ti-lock.text-white
+                    .info-box-content
+                        h6.info-box-text.text-white Dev account
+                        h1.text-white= data.devfund
                         span.progress-description.text-white ETHO
                     // /.info-box-content
                 // /.info-box
             // /.col
 
+
         .row
-            .col-lg-6.col-xlg-9
+            .col-lg-6.col-xlg-12
                 .info-box
                     .d-flex.flex-wrap
                         div
-                            h4.text-black Top 50 - Rich list
+                            h4.text-black Top 45 - Rich list - ETHO protocol
                     .m-t-2
                         script(src="/dist/js/chart.js")
                         p !{chart1}
+            .col-lg-6.col-xlg-12
+                .info-box
+                    .d-flex.flex-wrap
+                        div
+                            h4.text-black Top 45 - Rich list - 24hrs
+                    .m-t-2
+                        p !{chart2}

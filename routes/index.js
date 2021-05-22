@@ -38,93 +38,116 @@ router.get('/dash_richlist', async function(req, res, next) {
     
     logger.info("#server.routes.index.get: %s", req.headers.host);
     
-    let vsql="SELECT * FROM info ORDER BY id DESC LIMIT 1";
+    let vsql = "SELECT * FROM info ORDER BY id DESC LIMIT 24";
     
     pool.query(vsql)
         .then(async (inforows) => {
             let supply = inforows[0].coin_1_supply;
-    
-            const puppeteer = require('puppeteer');
-    
-            const browser = await puppeteer.launch({
-                slowMo: 250
-            }).then(async (browser) => {
-                const page = await browser.newPage();
-                await page.goto('https://richlist.ethoprotocol.com');
-                await page.content().then(async (html) => {
-                    // Fetch richlist and do some magic
-                    tablesAsJson = tabletojson.convert(html);
-                    let i;
-                    let top50share = [];
-                    let labelstr = [];
-                    let obj;
-                    let max = 100;
-                    for (i = 0; i < tablesAsJson[0].length; i++) {
-                        switch (tablesAsJson[0][i].Address.slice(42)) {
-                            case '0xfbd45d6ed333c4ae16d379ca470690e3f8d0d2a2':
-                            case '0x548833f13d6bf156260f6e1769c847991c0f6324':
-                                console.log(tablesAsJson[0][i].Address.slice(42));
-                                break;
-                            default:
-                                obj = tablesAsJson[0][i];
-                                top50share.push(obj['% of Coins']);
-                                max -= obj['% of Coins'];
-                                labelstr.push(i);
-                                break;
-                        }
-                    }
-                    labelstr.push(50);
-                    let data = [];
-                    data.first50 = MISC_numberFormating(Math.round(((100 - max) * supply) / 100));
-                    data.after50 = MISC_numberFormating(Math.round((max * supply / 100)));
+            let tablesAsJson = JSON.parse(inforows[0].etho_richlist);
+            let i;
+            let top50share = [];
+            let top50label = [];
             
-                    top50share.push(Math.round(100 * max) / 100);
-                    let rgbstr = [];
-                    for (i = 0; i < top50share.length - 1; i++) {
-                        rgbstr.push("rgb(" + Math.floor(Math.random() * 255) + "," + Math.floor(Math.random() * 255) + "," + Math.floor(Math.random() * 255) + ")");
-                    }
-                    rgbstr.push("rgb(" + Math.floor(Math.random() * 255) + "," + Math.floor(Math.random() * 255) + "," + Math.floor(Math.random() * 255) + ")");
-            
-                    let chartobj = {
-                        type: 'doughnut',
-                        data: {
-                    
-                            datasets:
-                                [{
-                                    label: labelstr,
-                                    backgroundColor: rgbstr,
-                                    data: top50share
-                                }]
-                        },
-                        options: {
-                            responsive: true,
-                        }
-                    };
-                    // Create charts
-                    let content1 = "";
-                    content1 += "<canvas id='chartjs-1' class='chartjs' width='1540' height='770' style='display: block; height: 385px; width: 770px;'></canvas>";
-                    content1 += "<script>new Chart(document.getElementById('chartjs-1')," + JSON.stringify(chartobj) + ");</script>";
-            
-            
-                    res.render('dash_richlist', {
-                        title: 'ETHO | Richlist dashboard',
-                        data: data,
-                        chart1: content1
-                    });
-            
-                })
-                .catch((error) => {
-                    console.error(error);
-                })
-            await browser.close();
-    
-            })
+            let labelstr = [];
+            let max = supply;
+            let exchange_all=inforows[0].etho_exchange_stex+inforows[0].etho_exchange_graviex+inforows[0].etho_exchange_probit+inforows[0].etho_exchange_mercatox;
+            let rich=0;
+            let devfund = inforows[0].etho_devfund;
     
     
+            for (i = 0; i < tablesAsJson.length; i++) {
+                top50share.push(tablesAsJson[i].bal);
+                
+                top50label.push(i +": " + tablesAsJson[i].add);
+                rich+= tablesAsJson[i].bal;
+                labelstr.push(i);
+            }
+            labelstr.push(50);
+            let data = [];
+            data.supply = MISC_numberFormating(Math.round((supply) * 100) / 100);
+            data.richlist = MISC_numberFormating(Math.round((rich) * 100) / 100);
+            data.exchanges= MISC_numberFormating(Math.round((exchange_all) * 100) / 100);
+            data.devfund= MISC_numberFormating(Math.round((devfund) * 100) / 100);
+            data.rest = MISC_numberFormating(Math.round((supply-exchange_all-devfund-rich)*100) / 100);
+            
+            let rgbstr = [];
+            for (i = 0; i < top50share.length; i++) {
+                rgbstr.push("rgb(" + Math.floor(Math.random() * 255) + "," + Math.floor(Math.random() * 255) + "," + Math.floor(Math.random() * 255) + ")");
+                top50label.push("");
+            }
+            rgbstr.push("rgb(" + Math.floor(Math.random() * 255) + "," + Math.floor(Math.random() * 255) + "," + Math.floor(Math.random() * 255) + ")");
+            
+            let chartobj = {
+                type: 'doughnut',
+                data: {
+                    datasets:
+                        [{
+                            label: top50label,
+    
+                            backgroundColor: rgbstr,
+                            data: top50share
+                        }]
+                },
+                options: {
+                    legend: {
+                        display: false
+                    },
+                    responsive: true,
+                }
+            };
+            // Create charts
+            let content1 = "";
+            content1 += "<canvas id='chartjs-1' class='chartjs' width='1540' height='770' style='display: block; height: 385px; width: 770px;'></canvas>";
+            content1 += "<script>new Chart(document.getElementById('chartjs-1')," + JSON.stringify(chartobj) + ");</script>";
+    
+            let rich_24hrs=[];
+            let label_24hrs=[];
+            for (i=0;i<inforows.length;i++) {
+                rich=0;
+                tablesAsJson = JSON.parse(inforows[i].etho_richlist);
+                for (j = 0; j < tablesAsJson.length; j++) {
+                    rich+= tablesAsJson[j].bal;
+                }
+                rich_24hrs.push(rich);
+                label_24hrs.push(-i + "hr" );
+            }
+            
+            let chartobj2 = {
+                type: 'line',
+                data: {
+                    labels:
+                        ['Now', '-1hr', '-2hr', '-3hr', '-4hr', '-5hr', '-6hr', '-7hr', '-8hr', '-9hr', '-10hr', '-11hr', '-12hr', '-13hr', '-14hr', '-15hr', '-16hr', '-17hr', '-18hr', '-19hr', '-20hr', '-21hr', '-22hr1', '-23hr'],
+    
+                    datasets:
+                        [{
+                            label: 'Top 45 accounts value',
+                            backgroundColor: 'rgb(26,238,26)',
+                            data: rich_24hrs
+                        }]
+                },
+                options: {
+                    responsive: true
+                }
+            };
+            // Create charts
+            let content2 = "";
+            content2 += "<canvas id='chartjs-2' class='chartjs' width='1540' height='770' style='display: block; height: 385px; width: 770px;'></canvas>";
+            content2 += "<script>new Chart(document.getElementById('chartjs-2')," + JSON.stringify(chartobj2) + ");</script>";
+    
+    
+    
+            res.render('dash_richlist', {
+                title: 'ETHO | Richlist dashboard',
+                data: data,
+                chart1: content1,
+                chart2: content2
+            });
+            
         })
         .catch((error) => {
             console.error(error);
         })
+    
     
 });
 
@@ -462,7 +485,7 @@ router.get('/dash_financial', function(req, res, next) {
         data.blockheight = MISC_numberFormating(bd.block_height);
         data.circulatingsupply = MISC_numberFormating(bd.circulating_supply);
         
-        let vsql="SELECT * FROM info ORDER BY id DESC LIMIT 1";
+        let vsql="SELECT * FROM info ORDER BY id DESC LIMIT 5040";
         
         pool.query(vsql)
             .then(async (inforows) => {
@@ -499,58 +522,102 @@ router.get('/dash_financial', function(req, res, next) {
                     let content1 = "";
                     content1 += "<canvas id='chartjs-1' class='chartjs' width='1540' height='770' style='display: block; height: 385px; width: 770px;'></canvas>";
                     content1 += "<script>new Chart(document.getElementById('chartjs-1')," + JSON.stringify(chartobj) + ");</script>";
-                    
-                    let vsql="SELECT * FROM info ORDER BY id DESC LIMIT 25";
-                    
-                    let content2=await pool.query(vsql)
-                        .then((inforows) => {
-                            if (inforows != undefined) {
-                                // Generate chart
-                                let marketcapList = [];
-                                let i;
-                                for (i = 0; i < inforows.length; i++) {
-                                    if (inforows[i].coin_1_marketcap == null)
-                                        inforows[i].coin_1_marketcap = 0;
-                                }
-                                for (i = 0; i < inforows.length; i++) {
-                                    marketcapList[i] = (inforows[i].coin_1_quote * inforows[i].coin_1_supply / 1E4) / 100;
-                                }
-                                
-                                let chartobj2 = {
-                                    type: 'bar',
-                                    data: {
-                                        labels:
-                                            ['Now', '-1hr', '-2hr', '-3hr', '-4hr', '-5hr', '-6hr', '-7hr', '-8hr', '-9hr', '-10hr', '-11hr', '-12hr', '-13hr', '-14hr', '-15hr', '-16hr', '-17hr', '-18hr', '-19hr', '-20hr', '-21hr', '-22hr1', '-23hr'],
-                                        datasets:
-                                            [{
-                                                'label': 'ETHO market cap (MUSD)',
-                                                data: marketcapList,
-                                                backgroundColor: 'rgb(171,47,73)'
-                                            }]
-                                        
-                                    },
-                                    options: {
-                                        responsive: true
-                                    }
-                                };
-                                // Create charts
-                                let content = "";
-                                content += "<canvas id='chartjs-2' class='chartjs' width='1540' height='770' style='display: block; height: 385px; width: 770px;'></canvas>";
-                                content += "" +
-                                    "<script>new Chart(document.getElementById('chartjs-2')," + JSON.stringify(chartobj2) + ");</script>";
-                                return(content);
-                            }
-                        })
-                        .catch((error)=> {
-                            logger.error("%s", error);
-                        })
-                    
-                    
+    
+                    let content2_24hrs="";
+                    let content2_7d="";
+                    let content2_30d="";
+                    let marketcapList = [];
+                    let marketcapList_7d = [];
+                    let marketcapList_30d = [];
+    
+                    let labels_7d=[];
+                    let labels_30d=[];
+    
+                    let i;
+                    for (i = 0; i < inforows.length; i++) {
+                        if (inforows[i].coin_1_marketcap == null)
+                            inforows[i].coin_1_marketcap = 0;
+                    }
+                    for (i = 0; i < 24; i++) {
+                        marketcapList[i] = Math.round(inforows[i].coin_1_quote * inforows[i].coin_1_supply / 1E4) / 100;
+                    }
+    
+                    for (i = 0; i < 168; i++) {
+                        marketcapList_7d[i] = Math.round(inforows[i].coin_1_quote * inforows[i].coin_1_supply / 1E4) / 100;
+                        labels_7d.push(-i + " hr");
+                    }
+    
+                    for (i = 0; i < inforows.length; i++) {
+                        marketcapList_30d[i] = Math.round(inforows[i].coin_1_quote * inforows[i].coin_1_supply / 1E4) / 100;
+                        labels_30d.push(-i + "hr");
+                    }
+    
+    
+                    let chartobj2_24hrs = {
+                        type: 'bar',
+                        
+                        data: {
+                            labels:
+                                ['Now','-1hr','-2hr','-3hr','-4hr','-5hr','-6hr','-7hr','-8hr','-9hr','-10hr','-11hr','-12hr','-13hr','-14hr','-15hr','-16hr','-17hr','-18hr','-19hr','-20hr','-21hr','-22hr1','-23hr'],
+                            datasets:
+                                [{
+                                    'label': 'ETHO market cap (MUSD)',
+                                    data: marketcapList,
+                                    backgroundColor: 'rgb(100,26,42)'
+                                }]
+                        },
+                        options: {
+                            responsive: true
+                        }
+                    };
+                    // Create charts
+                    content2_24hrs += "<canvas id='chartjs-2_24hrs' class='chartjs' width='1540' height='770' style='display: block; height: 385px; width: 770px;'></canvas>";
+                    content2_24hrs += "<script>new Chart(document.getElementById('chartjs-2_24hrs')," + JSON.stringify(chartobj2_24hrs) + ");</script>";
+    
+                    let chartobj2_7d = {
+                        type: 'bar',
+                        data: {
+                            labels: labels_7d,
+                            datasets:
+                                [{
+                                    'label': 'ETHO market cap (MUSD)',
+                                    data: marketcapList_7d,
+                                    backgroundColor: 'rgb(171,47,73)'
+                                }]
+            
+                        },
+                        options: {
+                            responsive: true,
+                        }
+                    };
+                    // Create charts
+                    content2_7d += "<canvas id='chartjs-2-7d' class='chartjs' width='1540' height='770' style='display: block; height: 385px; width: 770px;'></canvas>";
+                    content2_7d += "<script>new Chart(document.getElementById('chartjs-2-7d')," + JSON.stringify(chartobj2_7d) + ");</script>";
+    
+                    let chartobj2_30d = {
+                        type: 'bar',
+                        data: {
+                            labels: labels_30d,
+                            datasets:
+                                [{
+                                    'label': 'ETHO market cap (MUSD)',
+                                    data: marketcapList_30d,
+                                    backgroundColor: 'rgb(171,47,73)'
+                                }]
+            
+                        },
+                        options: {
+                            responsive: true,
+                        }
+                    };
+                    // Create charts
+                    content2_30d += "<canvas id='chartjs-2-30d' class='chartjs' width='1540' height='770' style='display: block; height: 385px; width: 770px;'></canvas>";
+                    content2_30d += "<script>new Chart(document.getElementById('chartjs-2-30d')," + JSON.stringify(chartobj2_30d) + ");</script>";
+    
                     inforows[0].coin_1_quote = Math.trunc(inforows[0].coin_1_quote * 10000) / 10000;
                     inforows[0].coin_2_quote = Math.trunc(inforows[0].coin_2_quote * 10000) / 10000;
                     inforows[0].coin_3_quote = Math.trunc(inforows[0].coin_3_quote * 10000) / 10000;
                     inforows[0].coin_4_quote = Math.trunc(inforows[0].coin_4_quote * 10000) / 10000;
-                    
                     
                     inforows[0].coin_1_marketcap = Math.round(inforows[0].coin_1_quote*inforows[0].coin_1_supply/1E4) /100 + "MUSD";
                     inforows[0].coin_1_percent1d = Math.round(inforows[0].coin_1_percent1d/100);
@@ -577,7 +644,9 @@ router.get('/dash_financial', function(req, res, next) {
                         title: 'ETHO | Financial dashboard',
                         data: data,
                         db: inforows[0],
-                        chart1: content2,
+                        chart1_24hrs: content2_24hrs,
+                        chart1_7d: content2_7d,
+                        chart1_30d: content2_30d,
                         chart2: content1,
                     });
                 }

@@ -18,12 +18,24 @@ const filename = path.join(process.cwd()+'/Logs/', 'created-logfile.log');
 
 var logger = require("../logger");
 logger.info("Logging initiated");
+logger.info("************************************************************************");
+logger.info(" *******   ********  ******** **********     **     *******   **********");
+logger.info("/**////** /**/////  **////// /////**///     ****   /**////** /////**/// ");
+logger.info("/**   /** /**      /**           /**       **//**  /**   /**     /**    ");
+logger.info("/*******  /******* /*********    /**      **  //** /*******      /**    ");
+logger.info("/**///**  /**////  ////////**    /**     **********/**///**      /**    ");
+logger.info("/**  //** /**             /**    /**    /**//////**/**  //**     /**    ");
+logger.info("/**   //**/******** ********     /**    /**     /**/**   //**    /**    ");
+logger.info("//     // //////// ////////      //     //      // //     //     //     ");
+logger.info("************************************************************************");
+
 
 global.config = require("../config")();
 
 var app = require('../app');
 var debug = require('debug')('play:server');
 var http = require('http');
+
 
 
 /**

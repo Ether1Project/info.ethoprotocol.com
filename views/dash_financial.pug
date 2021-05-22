@@ -64,22 +64,57 @@ block content
         // /.row
         // Main row
         .row
-            .col-lg-6.col-xlg-9
-                .info-box
-                    .d-flex.flex-wrap
-                        div
-                            h4.text-black ETHO Market
-                    .m-t-2
-                        script(src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.8.0/Chart.js")
-                        p !{chart1}
+            .col-md-6
+                .card
+                    .card-body
 
-            .col-lg-6.col-xlg-9
-                .info-box
-                    .d-flex.flex-wrap
-                        div
-                            h4.text-black Market cap storage related crypto currencies
-                    .m-t-2
-                        p !{chart2}
+                        h4.card-title.text-black Etho market cap
+                        h6.card-subtitle.m-b-2 Select the time span via tabs
+                        // Nav tabs
+                        ul.nav.nav-tabs(role='tablist')
+                            li.nav-item
+                                a.nav-link.active(data-toggle='tab' href='#tab1' role='tab')
+                                    span.hidden-sm-up
+                                        i.ti-home
+                                    span.hidden-xs-down 24hr view
+                            li.nav-item
+                                a.nav-link(data-toggle='tab' href='#tab2' role='tab')
+                                    span.hidden-sm-up
+                                        i.ti-user
+                                    span.hidden-xs-down 7 day view
+                            li.nav-item
+                                a.nav-link(data-toggle='tab' href='#tab3' role='tab')
+                                    span.hidden-sm-up
+                                        i.ti-email
+                                    span.hidden-xs-down 30 day view
+                        // Tab panes
+
+                        .tab-content.tabcontent-border
+
+                            #tab1.tab-pane.active(role='tabpanel')
+                                .info-box
+                                    .m-t-2
+                                        script(src="/dist/js/chart.js")
+                                        p !{chart1_24hrs}
+
+                            #tab2.tab-pane.p-20(role='tabpanel')
+                                .info-box
+                                    .m-t-2
+                                        p !{chart1_7d}
+
+                            #tab3.tab-pane.p-20(role='tabpanel')
+                                .info-box
+                                    .m-t-2
+                                        p !{chart1_30d}
+
+
+            .col-md-6
+                .card
+                    .card-body
+                        h4.card-title.text-black Market cap storage related crypto currencies
+                        .info-box
+                            .m-t-2
+                                p !{chart2}
 
         // Small boxes (Stat box)
         .row

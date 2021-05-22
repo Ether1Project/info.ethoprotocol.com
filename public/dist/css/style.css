@@ -5492,6 +5492,7 @@ filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='#e73f7c', endCo
 .chart svg, .chart canvas {
 	width: 100% !important
 }
+
 @media print {
 .no-print, .main-sidebar, .left-side, .main-header, .content-header {
 	display: none !important
