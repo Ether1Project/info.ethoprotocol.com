@@ -5,7 +5,7 @@ const ping = require('ping');
 const checkCertExpiration = require('check-cert-expiration');
 const tabletojson = require('tabletojson').Tabletojson;
 const ethofsSDK = require('@ethofs/sdk');
-
+const { Octokit } = require("@octokit/core");
 
 
 var express = require('express');
@@ -17,21 +17,64 @@ router.get('/', function(req, res, next) {
     var title;
     
     logger.info("#server.routes.index.get: %s", req.headers.host);
-    
     res.render('index', {
         title: 'ETHO | Coin dashboard'
     });
 });
 
 /* GET home page. */
-router.get('/dash_subscribe', function(req, res, next) {
+router.get('/dash_activity', async function(req, res, next) {
     
-    logger.info("#server.routes.index.get: %s", req.headers.host);
+    logger.info("#server.routes.index.get.dash_activity: %s", req.headers.host);
+    let data=[];
     
-    res.render('dash_subscribe', {
-        title: 'ETHO | Subscribe'
+    const octokit = new Octokit({ auth: config.GITHUB });
+
+    console.log(await read_repos(octokit, 0, 1));
+    console.log("+++++");
+    await octokit.request("GET /orgs/{org}/events", {
+        org: "Ether1Project",
+        type: "public"
+    }).then((ok)=> {
+        let bd;
+        logger.info("#server.routes.index.get.dash_activity: Length: %s", ok.data.length);
+    })
+        .catch((error)=>{
+            logger.error("#server.routes.index.get.dash_activity: Error %s",error);
+        })
+    
+    
+    res.render('dash_activity', {
+        title: 'ETHO | Activity'
     });
 });
+
+async function read_repos(octokit, res, page) {
+    
+    await octokit.request('GET /orgs/{org}/repos', {
+        org: 'Ether1Project',
+        page: page
+    }).then((ok) => {
+        let i;
+        let data;
+
+        let headers=ok.headers.link.split(",");
+        for (i=0;i<headers.length;i++) {
+            if (headers[i].search("; rel=\"next\"")>0) {
+                console.log("++++++++");
+                data=headers[i].match(/page=(\d*)/);
+                console.log(data[1]);
+                read_repos(octokit, res, data[1]);
+            }
+        }
+        logger.info("#server.routes.index.get.dash_activity: Nr of repos: %s", ok.data.length);
+        res+=ok.data.length;
+        
+        return(res);
+    });
+    
+}
+
 
 /* GET home page. */
 router.get('/dash_richlist', async function(req, res, next) {
@@ -516,11 +559,12 @@ router.get('/dash_financial', function(req, res, next) {
                         },
                         options: {
                             responsive: true,
+                            
                         }
                     };
                     // Create charts
                     let content1 = "";
-                    content1 += "<canvas id='chartjs-1' class='chartjs' width='1540' height='770' style='display: block; height: 385px; width: 770px;'></canvas>";
+                    content1 += "<canvas id='chartjs-1' class='chartjs'></canvas>";
                     content1 += "<script>new Chart(document.getElementById('chartjs-1')," + JSON.stringify(chartobj) + ");</script>";
     
                     let content2_24hrs="";
@@ -571,7 +615,7 @@ router.get('/dash_financial', function(req, res, next) {
                         }
                     };
                     // Create charts
-                    content2_24hrs += "<canvas id='chartjs-2_24hrs' class='chartjs' width='1540' height='770' style='display: block; height: 385px; width: 770px;'></canvas>";
+                    content2_24hrs += "<canvas id='chartjs-2_24hrs' class='chartjs'></canvas>";
                     content2_24hrs += "<script>new Chart(document.getElementById('chartjs-2_24hrs')," + JSON.stringify(chartobj2_24hrs) + ");</script>";
     
                     let chartobj2_7d = {
@@ -591,7 +635,7 @@ router.get('/dash_financial', function(req, res, next) {
                         }
                     };
                     // Create charts
-                    content2_7d += "<canvas id='chartjs-2-7d' class='chartjs' width='1540' height='770' style='display: block; height: 385px; width: 770px;'></canvas>";
+                    content2_7d += "<canvas id='chartjs-2-7d' class='chartjs'></canvas>";
                     content2_7d += "<script>new Chart(document.getElementById('chartjs-2-7d')," + JSON.stringify(chartobj2_7d) + ");</script>";
     
                     let chartobj2_30d = {
@@ -611,7 +655,7 @@ router.get('/dash_financial', function(req, res, next) {
                         }
                     };
                     // Create charts
-                    content2_30d += "<canvas id='chartjs-2-30d' class='chartjs' width='1540' height='770' style='display: block; height: 385px; width: 770px;'></canvas>";
+                    content2_30d += "<canvas id='chartjs-2-30d' class='chartjs'></canvas>";
                     content2_30d += "<script>new Chart(document.getElementById('chartjs-2-30d')," + JSON.stringify(chartobj2_30d) + ");</script>";
     
                     inforows[0].coin_1_quote = Math.trunc(inforows[0].coin_1_quote * 10000) / 10000;
@@ -842,102 +886,184 @@ router.get('/dash_nodes', function(req, res, next) {
         
         
         
-        let vsql="SELECT * FROM info ORDER BY id DESC LIMIT 25";
+        let vsql="SELECT * FROM info ORDER BY id DESC LIMIT 5040";
         
         pool.query(vsql)
             .then(async (inforows) => {
-                if (inforows!=undefined) {
-                    // Generate pie chart
-                    let nodesList = [];
-                    nodesList.push(inforows[0].etho_active_gatewaynodes);
-                    nodesList.push(inforows[0].etho_active_masternode);
-                    nodesList.push(inforows[0].etho_active_servicenodes);
-                    inforows[0].collateral=MISC_numberFormating(parseInt(inforows[0].etho_active_gatewaynodes*30000)+ parseInt(inforows[0].etho_active_masternode*15000)+ parseInt(inforows[0].etho_active_servicenodes*5000));
-                    let chartobj = {
-                        type: 'pie',
-                        data: {
-                            labels:
-                                ['Gateway', 'Master', 'Service'],
-                            datasets:
-                                [{
-                                    'label': 'Market cap share',
-                                    backgroundColor:
-                                        ['rgb(171,47,73)',
-                                            'rgb(54, 162, 235)',
-                                            'rgb(255, 205, 86)'],
-                                    data: nodesList
-                                }]
-                            
-                        },
-                        options: {
-                            responsive: true,
-                        }
-                    };
-                    // Create charts
-                    let content1 = "";
-                    content1 += "<canvas id='chartjs-1' class='chartjs' width='1540' height='770' style='display: block; height: 385px; width: 770px;'></canvas>";
-                    content1 += "<script>new Chart(document.getElementById('chartjs-1')," + JSON.stringify(chartobj) + ");</script>";
-                    
-                    let vsql="SELECT * FROM info ORDER BY id DESC LIMIT 25";
-                    
-                    let content2=await pool.query(vsql)
-                        .then((inforows) => {
-                            if (inforows != undefined) {
-                                // Generate chart
-                                let contractList = [];
-                                let i;
-                                for (i = 0; i < inforows.length; i++) {
-                                    if (inforows[i].etho_activeUploadContracts == null)
-                                        inforows[i].etho_activeUploadContracts = 0;
-                                }
-                                for (i = 0; i < inforows.length; i++) {
-                                    contractList.push(inforows[i].etho_activeUploadContracts);
-                                }
-                                
-                                let chartobj2 = {
-                                    type: 'bar',
-                                    data: {
-                                        labels:
-                                            ['Now', '-1hr', '-2hr', '-3hr', '-4hr', '-5hr', '-6hr', '-7hr', '-8hr', '-9hr', '-10hr', '-11hr', '-12hr', '-13hr', '-14hr', '-15hr', '-16hr', '-17hr', '-18hr', '-19hr', '-20hr', '-21hr', '-22hr1', '-23hr'],
-                                        datasets:
-                                            [{
-                                                'label': 'Active contracts',
-                                                data: contractList,
-                                                backgroundColor: 'rgb(170,250,58)'
-                                            }]
-                                        
-                                    },
-                                    options: {
-                                        responsive: true
-                                    }
-                                };
-                                // Create charts
-                                let content = "";
-                                content += "<canvas id='chartjs-2' class='chartjs' width='1540' height='770' style='display: block; height: 385px; width: 770px;'></canvas>";
-                                content += "" +
-                                    "<script>new Chart(document.getElementById('chartjs-2')," + JSON.stringify(chartobj2) + ");</script>";
-                                return(content);
+                // Generate pie chart
+                let nodesList = [];
+                nodesList.push(inforows[0].etho_active_gatewaynodes);
+                nodesList.push(inforows[0].etho_active_masternode);
+                nodesList.push(inforows[0].etho_active_servicenodes);
+                inforows[0].collateral=MISC_numberFormating(parseInt(inforows[0].etho_active_gatewaynodes*30000)+ parseInt(inforows[0].etho_active_masternode*15000)+ parseInt(inforows[0].etho_active_servicenodes*5000));
+                let chartobj = {
+                    type: 'pie',
+                    data: {
+                        labels:
+                            ['Gateway', 'Master', 'Service'],
+                        datasets:
+                            [{
+                                'label': 'Market cap share',
+                                backgroundColor:
+                                    ['rgb(171,47,73)',
+                                        'rgb(54, 162, 235)',
+                                        'rgb(255, 205, 86)'],
+                                data: nodesList
+                            }]
+                        
+                    },
+                    options: {
+                        responsive: true,
+                    }
+                };
+                // Create charts
+                let content1 = "";
+                content1 += "<canvas id='chartjs-1' class='chartjs' width='1540' height='770' style='display: block; height: 385px; width: 770px;'></canvas>";
+                content1 += "<script>new Chart(document.getElementById('chartjs-1')," + JSON.stringify(chartobj) + ");</script>";
+    
+                let content2_24hrs="";
+                let content2_7d="";
+                let content2_30d="";
+                let contractList = [];
+                let contractList_7d = [];
+                let contractList_30d = [];
+    
+                let labels_7d=[];
+                let labels_30d=[];
+    
+                let i;
+                for (i = 0; i < inforows.length; i++) {
+                    if (inforows[i].etho_activeUploadContracts == null)
+                        inforows[i].etho_activeUploadContracts = 0;
+                }
+                for (i = 0; i < 24; i++) {
+                    contractList[i] = inforows[i].etho_activeUploadContracts;
+                }
+    
+                for (i = 0; i < 168; i++) {
+                    contractList_7d[i] = inforows[i].etho_activeUploadContracts;
+                    labels_7d.push(-i + " hr");
+                }
+    
+                for (i = 0; i < inforows.length; i++) {
+                    contractList_30d[i] = inforows[i].etho_activeUploadContracts;
+                    labels_30d.push(-i + "hr");
+                }
+    
+    
+                let chartobj2_24hrs = {
+                    type: 'bar',
+        
+                    data: {
+                        labels:
+                            ['Now','-1hr','-2hr','-3hr','-4hr','-5hr','-6hr','-7hr','-8hr','-9hr','-10hr','-11hr','-12hr','-13hr','-14hr','-15hr','-16hr','-17hr','-18hr','-19hr','-20hr','-21hr','-22hr1','-23hr'],
+                        datasets:
+                            [{
+                                'label': 'ETHO market cap (MUSD)',
+                                data: contractList,
+                                backgroundColor: 'rgb(156,252,3)'
+                            }]
+                    },
+                    options: {
+                        responsive: true
+                    }
+                };
+                // Create charts
+                content2_24hrs += "<canvas id='chartjs-2_24hrs' class='chartjs'></canvas>";
+                content2_24hrs += "<script>new Chart(document.getElementById('chartjs-2_24hrs')," + JSON.stringify(chartobj2_24hrs) + ");</script>";
+    
+                let chartobj2_7d = {
+                    type: 'bar',
+                    data: {
+                        labels: labels_7d,
+                        datasets:
+                            [{
+                                'label': 'ETHO market cap (MUSD)',
+                                data: contractList_7d,
+                                backgroundColor: 'rgb(156,252,3)'
+                            }]
+            
+                    },
+                    options: {
+                        responsive: true,
+                    }
+                };
+                // Create charts
+                content2_7d += "<canvas id='chartjs-2-7d' class='chartjs'></canvas>";
+                content2_7d += "<script>new Chart(document.getElementById('chartjs-2-7d')," + JSON.stringify(chartobj2_7d) + ");</script>";
+    
+                let chartobj2_30d = {
+                    type: 'bar',
+                    data: {
+                        labels: labels_30d,
+                        datasets:
+                            [{
+                                'label': 'ETHO market cap (MUSD)',
+                                data: contractList_30d,
+                                backgroundColor: 'rgb(156,252,3)'
+                            }]
+            
+                    },
+                    options: {
+                        responsive: true,
+                    }
+                };
+                // Create charts
+                content2_30d += "<canvas id='chartjs-2-30d' class='chartjs'></canvas>";
+                content2_30d += "<script>new Chart(document.getElementById('chartjs-2-30d')," + JSON.stringify(chartobj2_30d) + ");</script>";
+    
+                let gateway_30d=[];
+                let master_30d=[];
+                let service_30d=[];
+                for (i = 0; i < inforows.length; i++) {
+                    gateway_30d[i] = inforows[i].etho_gatewaynode_reward/10;
+                    master_30d[i] = inforows[i].etho_masternode_reward/10;
+                    service_30d[i] = inforows[i].etho_servicenode_reward/10;
+                }
+    
+    
+                let chartobj3 = {
+                    type: 'line',
+                    data: {
+                        labels:
+                            labels_30d,
+                        datasets:
+                            [{
+                                'label': 'Gateway node reward',
+                                data: gateway_30d,
+                                backgroundColor: 'rgb(26,238,26)'
+                            },{
+                                'label': 'Master node reward',
+                                data: master_30d,
+                                backgroundColor: 'rgb(239,239,12)'
+                            },{
+                                'label': 'Service node reward',
+                                data: service_30d,
+                                backgroundColor: 'rgb(236,13,13)'
                             }
-                        })
-                        .catch((error)=> {
-                            logger.error("%s", error);
-                        })
-                    
-                    
-                    res.render('dash_nodes', {
-                        title: 'ETHO | Financial dashboard',
-                        ethofsstats: stats,
-                        db: inforows[0],
-                        chart1: content2,
-                        chart2: content1,
-                    });
-                }
-                else {
-                    res.render('index', {
-                        title: 'ETHO | Financial dashboard'
-                    });
-                    
-                }
+                            ]
+            
+                    },
+                    options: {
+                        responsive: true
+                    }
+                };
+                // Create charts
+                let conten3 = "";
+                content3 = "<canvas id='chartjs-3' class='chartjs'></canvas>";
+                content3 += "<script>new Chart(document.getElementById('chartjs-3')," + JSON.stringify(chartobj3) + ");</script>";
+    
+    
+                res.render('dash_nodes', {
+                    title: 'ETHO | Financial dashboard',
+                    ethofsstats: stats,
+                    db: inforows[0],
+                    chart1_24hrs: content2_24hrs,
+                    chart1_7d: content2_7d,
+                    chart1_30d: content2_30d,
+                    chart2: content1,
+                    chart3: content3,
+                });
             })
             .catch((error) => {
                 logger.error('#server.users.get.account: Error %s', error);

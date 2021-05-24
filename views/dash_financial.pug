@@ -63,11 +63,11 @@ block content
             // /.col
         // /.row
         // Main row
+        script(src="/dist/js/chart.js")
         .row
-            .col-md-6
-                .card
+            .col-md-12.d-flex
+                .card.w-100
                     .card-body
-
                         h4.card-title.text-black Etho market cap
                         h6.card-subtitle.m-b-2 Select the time span via tabs
                         // Nav tabs
@@ -94,7 +94,6 @@ block content
                             #tab1.tab-pane.active(role='tabpanel')
                                 .info-box
                                     .m-t-2
-                                        script(src="/dist/js/chart.js")
                                         p !{chart1_24hrs}
 
                             #tab2.tab-pane.p-20(role='tabpanel')
@@ -107,14 +106,15 @@ block content
                                     .m-t-2
                                         p !{chart1_30d}
 
-
-            .col-md-6
-                .card
+        .row
+            .col-md-12.d-flex
+                .card.w-100
                     .card-body
                         h4.card-title.text-black Market cap storage related crypto currencies
                         .info-box
                             .m-t-2
                                 p !{chart2}
+
 
         // Small boxes (Stat box)
         .row
