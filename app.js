@@ -203,7 +203,7 @@ async function update1hrsDatabase() {
             await pool.query(vsql)
                 .then(async (inforows) => {
                     logger.info('#server.app.update1hrsDatabase: Timeout %s', inforows[0].secs);
-                    if (inforows[0].secs > 3600 || config.development) {
+                    if (inforows[0].secs > 3500 || config.development) {
                     
                         // Fetch exchange status
                         let exchange_stex = 0;

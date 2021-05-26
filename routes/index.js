@@ -177,6 +177,8 @@ router.get('/dash_richlist', async function(req, res, next) {
             content2 += "<canvas id='chartjs-2' class='chartjs' width='1540' height='770' style='display: block; height: 385px; width: 770px;'></canvas>";
             content2 += "<script>new Chart(document.getElementById('chartjs-2')," + JSON.stringify(chartobj2) + ");</script>";
     
+            let dateParts = inforows[0].date.toLocaleTimeString();
+            data.date=dateParts+ " GMT ";
     
     
             res.render('dash_richlist', {
@@ -298,6 +300,9 @@ router.get('/dash_ipfs', async function(req, res, next) {
     let content2 = "";
     content2 += "<canvas id='chartjs-2' class='chartjs' width='1540' height='770' style='display: block; height: 385px; width: 770px;'></canvas>";
     content2 += "<script>new Chart(document.getElementById('chartjs-2')," + JSON.stringify(chartobj2) + ");</script>";
+    
+    let dateParts = inforows[0].date.toLocaleTimeString();
+    data.date=dateParts+ " GMT ";
     
     res.render('dash_ipfs', {
         title: 'ETHO | IPFS dashboard',
@@ -431,6 +436,8 @@ router.get('/dash_exchanges', async function(req, res, next) {
             content2 += "<canvas id='chartjs-2' class='chartjs' width='1540' height='770' style='display: block; height: 385px; width: 770px;'></canvas>";
             content2 += "<script>new Chart(document.getElementById('chartjs-2')," + JSON.stringify(chartobj2) + ");</script>";
     
+            let dateParts = inforows[0].date.toLocaleTimeString();
+            data.date=dateParts+ " GMT ";
     
             res.render('dash_exchanges', {
                 title: 'ETHO | Exchange dashboard',
@@ -442,8 +449,6 @@ router.get('/dash_exchanges', async function(req, res, next) {
         })
         .catch((error)=>{
             logger.error("#server.routes.index.get.dash_exchanges: Error %s", error);
-            
-    
         })
 });
 
@@ -508,6 +513,8 @@ router.get('/dash_health', async function(req, res, next) {
                 })
             })
     }
+    let dateParts = inforows[0].date.toLocaleTimeString();
+    data.date=dateParts+ " GMT ";
     
     res.render('dash_health', {
         title: 'ETHO | Coin dashboard',
@@ -682,7 +689,9 @@ router.get('/dash_financial', function(req, res, next) {
                     inforows[0].norm_coin_2_supply = Math.round(10*inforows[0].coin_2_supply/inforows[0].coin_1_supply)/10;
                     inforows[0].norm_coin_3_supply = Math.round(10*inforows[0].coin_3_supply/inforows[0].coin_1_supply)/10;
                     inforows[0].norm_coin_4_supply = Math.round(10*inforows[0].coin_4_supply/inforows[0].coin_1_supply)/10;
-                    
+
+                    let dateParts = inforows[0].date.toLocaleTimeString();
+                    data.date=dateParts+ " GMT ";
                     
                     res.render('dash_financial', {
                         title: 'ETHO | Financial dashboard',
@@ -722,6 +731,10 @@ router.get('/dash_financial2', async function(req, res, next) {
         .then(async (inforows) => {
             data.year = MISC_numberFormating(Math.round(inforows[0].coin_1_quote / 0.005 * 100000)/100);
         });
+    
+    let dateParts = inforows[0].date.toLocaleTimeString();
+    data.date=dateParts+ " GMT ";
+    
     res.render('dash_financial2', {
         title: 'ETHO | Financial 2 dashboard',
         data: data
@@ -834,11 +847,11 @@ router.get('/dash_cmctrending', function(req, res, next) {
                     inforows[0].coin_3_percent30d = Math.round(inforows[0].coin_3_percent30d/100);
                     inforows[0].coin_4_percent1d = Math.round(inforows[0].coin_4_percent1d/100);
                     inforows[0].coin_4_percent30d = Math.round(inforows[0].coin_4_percent30d/100);
-                    
-                    
-                    
-                    
-                    
+    
+    
+                    let dateParts = inforows[0].date.toLocaleTimeString();
+                    data.date=dateParts+ " GMT ";
+    
                     res.render('dash_cmctrending', {
                         title: 'ETHO | ETHO trending',
                         data: data,
@@ -959,9 +972,10 @@ router.get('/dash_nodes', function(req, res, next) {
                             ['Now','-1hr','-2hr','-3hr','-4hr','-5hr','-6hr','-7hr','-8hr','-9hr','-10hr','-11hr','-12hr','-13hr','-14hr','-15hr','-16hr','-17hr','-18hr','-19hr','-20hr','-21hr','-22hr1','-23hr'],
                         datasets:
                             [{
-                                'label': 'ETHO market cap (MUSD)',
+                                'label': 'Number of contracts',
                                 data: contractList,
-                                backgroundColor: 'rgb(156,252,3)'
+                                backgroundColor: 'rgb(156,252,3)',
+                                fill: true
                             }]
                     },
                     options: {
@@ -978,7 +992,7 @@ router.get('/dash_nodes', function(req, res, next) {
                         labels: labels_7d,
                         datasets:
                             [{
-                                'label': 'ETHO market cap (MUSD)',
+                                'label': 'Number of contracts',
                                 data: contractList_7d,
                                 backgroundColor: 'rgb(156,252,3)'
                             }]
@@ -998,7 +1012,7 @@ router.get('/dash_nodes', function(req, res, next) {
                         labels: labels_30d,
                         datasets:
                             [{
-                                'label': 'ETHO market cap (MUSD)',
+                                'label': 'Number of contracts',
                                 data: contractList_30d,
                                 backgroundColor: 'rgb(156,252,3)'
                             }]
@@ -1027,20 +1041,25 @@ router.get('/dash_nodes', function(req, res, next) {
                     data: {
                         labels:
                             labels_30d,
-                        datasets:
+        
+                    datasets:
                             [{
-                                'label': 'Gateway node reward',
-                                data: gateway_30d,
-                                backgroundColor: 'rgb(26,238,26)'
-                            },{
-                                'label': 'Master node reward',
-                                data: master_30d,
-                                backgroundColor: 'rgb(239,239,12)'
-                            },{
                                 'label': 'Service node reward',
                                 data: service_30d,
-                                backgroundColor: 'rgb(236,13,13)'
+                                backgroundColor: 'rgb(236,13,13)',
+                                fill: true
+                            }, {
+                                'label': 'Master node reward',
+                                data: master_30d,
+                                backgroundColor: 'rgb(239,239,12)',
+                                fill: true
+                            }, {
+                                'label': 'Gateway node reward',
+                                data: gateway_30d,
+                                backgroundColor: 'rgb(26,238,26)',
+                                fill: true
                             }
+                            
                             ]
             
                     },
@@ -1053,10 +1072,14 @@ router.get('/dash_nodes', function(req, res, next) {
                 content3 = "<canvas id='chartjs-3' class='chartjs'></canvas>";
                 content3 += "<script>new Chart(document.getElementById('chartjs-3')," + JSON.stringify(chartobj3) + ");</script>";
     
+                let dateParts = inforows[0].date.toLocaleTimeString();
+                data.date=dateParts+ " GMT ";
+    
     
                 res.render('dash_nodes', {
                     title: 'ETHO | Financial dashboard',
                     ethofsstats: stats,
+                    data: data,
                     db: inforows[0],
                     chart1_24hrs: content2_24hrs,
                     chart1_7d: content2_7d,
