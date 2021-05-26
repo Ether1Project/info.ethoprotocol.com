@@ -164,8 +164,9 @@ router.get('/dash_richlist', async function(req, res, next) {
                     datasets:
                         [{
                             label: 'Top 45 accounts value',
-                            backgroundColor: 'rgb(26,238,26)',
-                            data: rich_24hrs
+                            backgroundColor: 'rgb(97,182,246)',
+                            data: rich_24hrs,
+                            fill: true
                         }]
                 },
                 options: {
@@ -210,106 +211,110 @@ router.get('/dash_ipfs', async function(req, res, next) {
     let bd;
     
     logger.info("#server.routes.index.get: %s", req.headers.host);
+    let vsql="SELECT * FROM info ORDER BY id DESC LIMIT 1";
     
-    const {body} = await got('http://api.ether1.org/ethofsapi.php?api=network_stats_archive');
-    bd=JSON.parse(body);
-    console.log(countProperties(bd));
-    let i=0;
-    let k=0;
-    let labels=[];
-    let obj;
+    pool.query(vsql)
+        .then(async (inforows) => {
     
-    for (key in bd) {
-        if (bd.hasOwnProperty(key)) {
-            if (!(k%100)) {
-                contracts[i] = parseInt(bd[key].activeUploadContracts).toString();
-                networkStorage[i] = parseInt(bd[key].totalNetworkStorageUsed)/1E9;
-                labels.push(1000000 + i*100000);
-                i = i + 1;
+            const {body} = await got('http://api.ether1.org/ethofsapi.php?api=network_stats_archive');
+            bd = JSON.parse(body);
+            console.log(countProperties(bd));
+            let i = 0;
+            let k = 0;
+            let labels = [];
+            let obj;
+    
+            for (key in bd) {
+                if (bd.hasOwnProperty(key)) {
+                    if (!(k % 100)) {
+                        contracts[i] = parseInt(bd[key].activeUploadContracts).toString();
+                        networkStorage[i] = parseInt(bd[key].totalNetworkStorageUsed) / 1E9;
+                        labels.push(1000000 + i * 100000);
+                        i = i + 1;
+                    }
+                    k = k + 1;
+                }
             }
-            k=k+1;
-        }
-    }
     
-    let ethofs = ethofsSDK(global.config.ETHOSERIAL);
+            let ethofs = ethofsSDK(global.config.ETHOSERIAL);
     
-    const options = {
-        ethofsOptions: {
-            hostingContractDuration: parseInt(100000),
-            hostingContractSize: parseInt(1E6)
-        }
-    };
-    data.cost=await ethofs.calculateCost(options)
-        .then((result) => {
-            //handle results here
-            logger.info("#server.routes.index.get.dash_ipfs: %s", result);
-            return(result.uploadCost/1E18);
-            })
-        .catch((err) => {
-            //handle error here
-            logger.error("#server.routes.index.get.dash_ipfs: %s", err);
-            return(0);
-            })
-    
-    data.cost=Math.round(data.cost*10000)/10000;
-    
-    
-    
-    let chartobj1 = {
-        type: 'line',
-        data: {
-            labels: labels,
-            datasets:
-                [{
-                    'label': 'Contracts over time',
-                    data: contracts,
-                    backgroundColor: 'rgb(26,238,26)'
+            const options = {
+                ethofsOptions: {
+                    hostingContractDuration: parseInt(100000),
+                    hostingContractSize: parseInt(1E6)
                 }
-                ]
+            };
+            data.cost = await ethofs.calculateCost(options)
+                .then((result) => {
+                    //handle results here
+                    logger.info("#server.routes.index.get.dash_ipfs: %s", result);
+                    return (result.uploadCost / 1E18);
+                })
+                .catch((err) => {
+                    //handle error here
+                    logger.error("#server.routes.index.get.dash_ipfs: %s", err);
+                    return (0);
+                })
+    
+            data.cost = Math.round(data.cost * 10000) / 10000;
+    
+    
+            let chartobj1 = {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets:
+                        [{
+                            'label': 'Contracts over time',
+                            data: contracts,
+                            backgroundColor: 'rgb(26,238,26)'
+                        }
+                        ]
             
-        },
-        options: {
-            responsive: true
-        }
-    };
-    
-    // Create charts
-    let content1 = "";
-    content1 += "<canvas id='chartjs-1' class='chartjs' width='1540' height='770' style='display: block; height: 385px; width: 770px;'></canvas>";
-    content1 += "<script>new Chart(document.getElementById('chartjs-1')," + JSON.stringify(chartobj1) + ");</script>";
-    
-    let chartobj2 = {
-        type: 'line',
-        data: {
-            labels: labels,
-            datasets:
-                [{
-                    'label': 'Storage in GB over time',
-                    data: networkStorage,
-                    backgroundColor: 'rgb(2,172,250)'
+                },
+                options: {
+                    responsive: true
                 }
-                ]
+            };
+    
+            // Create charts
+            let content1 = "";
+            content1 += "<canvas id='chartjs-1' class='chartjs' width='1540' height='770' style='display: block; height: 385px; width: 770px;'></canvas>";
+            content1 += "<script>new Chart(document.getElementById('chartjs-1')," + JSON.stringify(chartobj1) + ");</script>";
+    
+            let chartobj2 = {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets:
+                        [{
+                            'label': 'Storage in GB over time',
+                            data: networkStorage,
+                            backgroundColor: 'rgb(2,172,250)'
+                        }
+                        ]
             
-        },
-        options: {
-            responsive: true
-        }
-    };
+                },
+                options: {
+                    responsive: true
+                }
+            };
     
-    // Create charts
-    let content2 = "";
-    content2 += "<canvas id='chartjs-2' class='chartjs' width='1540' height='770' style='display: block; height: 385px; width: 770px;'></canvas>";
-    content2 += "<script>new Chart(document.getElementById('chartjs-2')," + JSON.stringify(chartobj2) + ");</script>";
+            // Create charts
+            let content2 = "";
+            content2 += "<canvas id='chartjs-2' class='chartjs' width='1540' height='770' style='display: block; height: 385px; width: 770px;'></canvas>";
+            content2 += "<script>new Chart(document.getElementById('chartjs-2')," + JSON.stringify(chartobj2) + ");</script>";
     
-    let dateParts = inforows[0].date.toLocaleTimeString();
-    data.date=dateParts+ " GMT ";
+            let dateParts = inforows[0].date.toLocaleTimeString();
+            data.date = dateParts + " GMT ";
     
-    res.render('dash_ipfs', {
-        title: 'ETHO | IPFS dashboard',
-        data: data,
-        chart1: content1,
-        chart2: content2
-    });
+            res.render('dash_ipfs', {
+                title: 'ETHO | IPFS dashboard',
+                data: data,
+                chart1: content1,
+                chart2: content2
+            });
+        });
 });
 
 function countProperties(obj) {
@@ -460,66 +465,71 @@ router.get('/dash_health', async function(req, res, next) {
     
     logger.info("#server.routes.index.get: %s", req.headers.host);
     
-    let server=["blocks.ethoprotocol.com","explorer.ethoprotocol.com","explorer2.ethoprotocol.com","info.ethoprotocol.com","www.ethoprotocol.com", "nodes.ethoprotocol.com", "richlist.ethoprotocol.com", "uploads.ethoprotocol.com", "wallet.ethoprotocol.com", "stats.ethoprotocol.com"];
-    let data=[];
-    let i;
+    let vsql = "SELECT * FROM info ORDER BY id DESC LIMIT 25";
     
-    
-    
-    for (i=0;i<server.length;i++) {
-        await ping.promise.probe(server[i])
-            .then(async (pingres) => {
-                 await got('https://' + server[i])
-                    .then(async (response) => {
-                        await (async function () {
-                            try {
-                                const {daysLeft, host, port} = await checkCertExpiration(server[i]);
-                            
-                                data.push({
-                                    servername: server[i],
-                                    up: false,
-                                    certdate: daysLeft + " days left",
-                                    latency: pingres.time
-                                });
-                            } catch (err) {
+    pool.query(vsql)
+        .then(async (inforows) => {
+            
+            let server = ["blocks.ethoprotocol.com", "explorer.ethoprotocol.com", "explorer2.ethoprotocol.com", "info.ethoprotocol.com", "www.ethoprotocol.com", "nodes.ethoprotocol.com", "richlist.ethoprotocol.com", "uploads.ethoprotocol.com", "wallet.ethoprotocol.com", "stats.ethoprotocol.com"];
+            let data = [];
+            let i;
+            
+            
+            for (i = 0; i < server.length; i++) {
+                await ping.promise.probe(server[i])
+                    .then(async (pingres) => {
+                        await got('https://' + server[i])
+                            .then(async (response) => {
+                                await (async function () {
+                                    try {
+                                        const {daysLeft, host, port} = await checkCertExpiration(server[i]);
+                                        
+                                        data.push({
+                                            servername: server[i],
+                                            up: false,
+                                            certdate: daysLeft + " days left",
+                                            latency: pingres.time
+                                        });
+                                    } catch (err) {
+                                        data.push({
+                                            servername: server[i],
+                                            up: true,
+                                            certdate: err.name,
+                                            latency: pingres.time
+                                        });
+                                        
+                                    }
+                                })();
+                                
+                            })
+                            .catch((error) => {
                                 data.push({
                                     servername: server[i],
                                     up: true,
-                                    certdate: err.name,
+                                    certdate: error,
                                     latency: pingres.time
-                                });
-                            
-                            }
-                        })();
-                    
+                                })
+                                
+                                
+                            })
                     })
                     .catch((error) => {
                         data.push({
                             servername: server[i],
                             up: true,
                             certdate: error,
-                            latency: pingres.time
+                            latency: 0
                         })
-                    
-                    
                     })
-            })
-            .catch((error) => {
-                data.push({
-                    servername: server[i],
-                    up: true,
-                    certdate: error,
-                    latency: 0
-                })
-            })
-    }
-    let dateParts = inforows[0].date.toLocaleTimeString();
-    data.date=dateParts+ " GMT ";
-    
-    res.render('dash_health', {
-        title: 'ETHO | Coin dashboard',
-        data: data
-    });
+            }
+            let dateParts = inforows[0].date.toLocaleTimeString();
+            data.date = dateParts + " GMT ";
+            
+            res.render('dash_health', {
+                title: 'ETHO | Coin dashboard',
+                data: data
+            });
+        })
 });
 
 
@@ -729,16 +739,16 @@ router.get('/dash_financial2', async function(req, res, next) {
     
     await pool.query(vsql)
         .then(async (inforows) => {
-            data.year = MISC_numberFormating(Math.round(inforows[0].coin_1_quote / 0.005 * 100000)/100);
+            data.year = MISC_numberFormating(Math.round(inforows[0].coin_1_quote / 0.005 * 100000) / 100);
+    
+            let dateParts = inforows[0].date.toLocaleTimeString();
+            data.date = dateParts + " GMT ";
+    
+            res.render('dash_financial2', {
+                title: 'ETHO | Financial 2 dashboard',
+                data: data
+            });
         });
-    
-    let dateParts = inforows[0].date.toLocaleTimeString();
-    data.date=dateParts+ " GMT ";
-    
-    res.render('dash_financial2', {
-        title: 'ETHO | Financial 2 dashboard',
-        data: data
-    });
     
 });
 
