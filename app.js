@@ -165,7 +165,7 @@ email
 async function update1hrsDatabase() {
 
     let wETHO;
-    await got('https://api.ethplorer.io/getTokenInfo/0x99676c9fa4c77848aeb2383fcfbd7e980dc25027?apiKey=EK-j29qz-WWayuE3-WhQN1')
+    await got('https://api.ethplorer.io/getTokenInfo/0x99676c9fa4c77848aeb2383fcfbd7e980dc25027?apiKey='+config.ETHPLORERKEY)
         .then((res) => {
             wETHO = JSON.parse(res.body);
             console.log(wETHO);
