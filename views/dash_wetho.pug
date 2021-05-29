@@ -4,75 +4,72 @@ block content
 
     // Content Header (Page header)
     .content-header.sty-one
-        h1 Dashboard - Nodes
+        h1 Dashboard - Wrapped ETHO
         ol.breadcrumb
             li
                 a(href='#') Home
             li
                 i.fa.fa-angle-right
-                | Dashboard - Nodes
+                | Dashboard - Wrapped ETHO
     // Main content
     .content
         // Small boxes (Stat box)
         .row
             .col-lg-3.col-sm-6.col-xs-12
-                .info-box.bg-darkblue
+                .info-box.bg-black
                     span.info-box-icon.bg-transparent
                         i.ti-layout-grid3-alt.text-white
                     .info-box-content
-                        h6.info-box-text.text-white ETHO Gateway nodes
-                        h1.text-white= db.etho_active_gatewaynodes
-                        span.progress-description.text-white= ethofsstats.gatewaynode_reward
-                            |  ETHO per Day
+                        h6.info-box-text.text-white wETHO percentage
+                        h1.text-white= data.percentageSupply
+                        span.progress-description.text-white of total supply
+                    // /.info-box-content
+                // /.info-box
+            // /.col
+
+        // Small boxes (Stat box)
+        .row
+            .col-lg-3.col-sm-6.col-xs-12
+                .info-box.bg-black
+                    span.info-box-icon.bg-transparent
+                        i.ti-layout-grid3-alt.text-white
+                    .info-box-content
+                        h6.info-box-text.text-white wETHO amount
+                        h1.text-white= data.totalSupply
+                        span.progress-description.text-white ETHO
                     // /.info-box-content
                 // /.info-box
             // /.col
             .col-lg-3.col-sm-6.col-xs-12
-                .info-box.bg-green.text-white
+                .info-box.bg-black.text-white
                     span.info-box-icon.bg-transparent
                         i.ti-wallet.text-white
                     .info-box-content
-                        h6.info-box-text.text-white ETHO maser nodes
-                        h1.text-white= db.etho_active_masternode
-                        span.progress-description.text-white= ethofsstats.masternode_reward
-                            |  ETHO per Day
-
+                        h6.info-box-text.text-white wETHO holders
+                        h1.text-white= data.holdersCount
+                        span.progress-description.text-white accounts
                     // /.info-box-content
                 // /.info-box
             // /.col
             .col-lg-3.col-sm-6.col-xs-12
-                .info-box.bg-aqua
+                .info-box.bg-black
                     span.info-box-icon.bg-transparent
                         i.ti-bar-chart
                     .info-box-content
-                        h6.info-box-text.text-white ETHO service nodes
-                        h1.text-white= db.etho_active_servicenodes
-                        span.progress-description.text-white= ethofsstats.servicenode_reward
-                            |  ETHO per Day
-
+                        h6.info-box-text.text-white wETHO transfers
+                        h1.text-white= data.transfersCount
+                        span.progress-description.text-white Tx
                     // /.info-box-content
                 // /.info-box
-            // /.col
-            .col-lg-3.col-sm-6.col-xs-12
-                .info-box.bg-blue
-                    span.info-box-icon.bg-transparent
-                        i.ti-bar-chart
-                    .info-box-content
-                        h6.info-box-text.text-white Locked ETHO
-                        h1.text-white= db.collateral
-                        span.progress-description.text-white in node use
-                    // /.info-box-content
-                // /.info-box
-
             // /.col
         // /.row
         // Main row
         script(src="/dist/js/chart.js")
         .row
-            .col-lg-6.col-xlg-9.d-flex
+            .col-md-12.d-flex
                 .card.w-100
                     .card-body
-                        h4.card-title.text-black ETHO active contracts
+                        h4.card-title.text-black wEtho market cap
                         h6.card-subtitle.m-b-2 Select the time span via tabs
                         // Nav tabs
                         ul.nav.nav-tabs(role='tablist')
@@ -91,7 +88,6 @@ block content
                                     span.hidden-sm-up
                                         i.ti-layout-grid4-alt
                                     span.hidden-xs-down 30 day view
-
                         // Tab panes
 
                         .tab-content.tabcontent-border
@@ -111,22 +107,8 @@ block content
                                     .m-t-2
                                         p !{chart1_30d}
 
-            .col-lg-6.col-xlg-9
-                .info-box
-                    .d-flex.flex-wrap
-                        div
-                            h4.text-black Node distribution
-                    .m-t-2
-                        p !{chart2}
 
-        .row
-            .col-lg-12.col-xlg-12
-                .info-box
-                    .d-flex.flex-wrap
-                        div
-                            h4.text-black Node reward in ETHO over 30 days
-                    .m-t-2
-                        p !{chart3}
+
 
 
     // /.content

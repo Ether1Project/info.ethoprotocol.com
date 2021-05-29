@@ -163,7 +163,16 @@ email
 
 // Aimed to be run every 24 hours
 async function update1hrsDatabase() {
-    // Check first if the latest entry is larger than 1 hour back
+
+    let wETHO;
+    await got('https://api.ethplorer.io/getTokenInfo/0x99676c9fa4c77848aeb2383fcfbd7e980dc25027?apiKey=EK-j29qz-WWayuE3-WhQN1')
+        .then((res) => {
+            wETHO = JSON.parse(res.body);
+            console.log(wETHO);
+        });
+            
+            
+            // Check first if the latest entry is larger than 1 hour back
     
     const puppeteer = require('puppeteer');
     
@@ -322,14 +331,16 @@ async function update1hrsDatabase() {
                                                 "etho_hashrate, etho_difficulty, " +
                                                 "etho_exchange_stex, etho_exchange_graviex, etho_exchange_mercatox, etho_exchange_probit, etho_devfund, " +
                                                 "etho_richlist, " +
-                                                "etho_gatewaynode_reward, etho_masternode_reward, etho_servicenode_reward, date) VALUES ("
+                                                "etho_gatewaynode_reward, etho_masternode_reward, etho_servicenode_reward, " +
+                                                "wetho_totalSupply, wetho_tranfersCount, wetho_holdersCount, date) VALUES ("
                                                 + jsonarr.data.ETHO.id + ",'" + jsonarr.data.ETHO.name + "','" + jsonarr.data.ETHO.symbol + "', " + jsonarr.data.ETHO.cmc_rank + ", " + jsonarr.data.ETHO.num_market_pairs + ", " + jsonarr.data.ETHO.circulating_supply + ", " + jsonarr.data.ETHO.quote.USD.price + ", " + Math.round(jsonarr.data.ETHO.quote.USD.percent_change_24h * 100) + ", " + Math.round(jsonarr.data.ETHO.quote.USD.percent_change_7d * 100) + ", " + Math.round(jsonarr.data.ETHO.quote.USD.percent_change_30d * 100) + ", " +
                                                 +jsonarr.data.FIL.id + ",'" + jsonarr.data.FIL.name + "','" + jsonarr.data.FIL.symbol + "', " + jsonarr.data.FIL.cmc_rank + ", " + jsonarr.data.FIL.num_market_pairs + ", " + jsonarr.data.FIL.circulating_supply + ", " + jsonarr.data.FIL.quote.USD.price + "," + Math.round(jsonarr.data.FIL.quote.USD.percent_change_24h * 100) + ", " + Math.round(jsonarr.data.FIL.quote.USD.percent_change_7d * 100) + ", " + Math.round(jsonarr.data.FIL.quote.USD.percent_change_30d * 100) + ", " +
                                                 +jsonarr.data.SC.id + ",'" + jsonarr.data.SC.name + "','" + jsonarr.data.SC.symbol + "', " + jsonarr.data.SC.cmc_rank + ", " + jsonarr.data.SC.num_market_pairs + ", " + jsonarr.data.SC.circulating_supply + ", " + jsonarr.data.SC.quote.USD.price + "," + Math.round(jsonarr.data.SC.quote.USD.percent_change_24h * 100) + ", " + Math.round(jsonarr.data.SC.quote.USD.percent_change_7d * 100) + ", " + Math.round(jsonarr.data.SC.quote.USD.percent_change_30d * 100) + ", " +
                                                 +jsonarr.data.STORJ.id + ",'" + jsonarr.data.STORJ.name + "','" + jsonarr.data.STORJ.symbol + "', " + jsonarr.data.STORJ.cmc_rank + ", " + jsonarr.data.STORJ.num_market_pairs + ", " + jsonarr.data.STORJ.circulating_supply + ", " + jsonarr.data.STORJ.quote.USD.price + "," + Math.round(jsonarr.data.STORJ.quote.USD.percent_change_24h * 100) + ", " + Math.round(jsonarr.data.STORJ.quote.USD.percent_change_7d * 100) + ", " + Math.round(jsonarr.data.STORJ.quote.USD.percent_change_30d * 100) + ", " +
                                                 pos + "," + etho_watchlist + "," + stats.activeUploadContracts + "," + stats.totalNetworkStorageUsed + "," + stats.networkStorageAvailable + "," +
                                                 stats.active_gatewaynodes + "," + stats.active_masternodes + "," + stats.active_servicenodes + "," + hashrate + "," + difficulty + "," +
-                                                exchange_stex + "," + exchange_graviex + "," + exchange_mercatox + "," + exchange_probit + "," + etho_devfund + ",'" + JSON.stringify(etho_richlist) + "'," +Math.round(stats.gatewaynode_reward*10) + "," + Math.round(stats.masternode_reward*10) + "," + Math.round(stats.servicenode_reward*10) + ",'" + pool.mysqlNow() + "')";
+                                                exchange_stex + "," + exchange_graviex + "," + exchange_mercatox + "," + exchange_probit + "," + etho_devfund + ",'" + JSON.stringify(etho_richlist) + "'," +Math.round(stats.gatewaynode_reward*10) + "," + Math.round(stats.masternode_reward*10) + "," + Math.round(stats.servicenode_reward*10) + ",'" +
+                                                wETHO.totalSupply + "'," + wETHO.transfersCount + "," + wETHO.holdersCount + ",'" + pool.mysqlNow() + "')";
                                         
                                         
                                             await pool.query(sql)

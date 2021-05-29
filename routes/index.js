@@ -22,6 +22,152 @@ router.get('/', function(req, res, next) {
     });
 });
 
+router.get('/dash_wetho', async function(req, res, next) {
+    
+    logger.info("#server.routes.index.get.dash_activity:s");
+    
+    let vsql = "SELECT * FROM info ORDER BY id DESC LIMIT 5040";
+    
+    pool.query(vsql)
+        .then(async (inforows) => {
+            
+            let data=[];
+            data.transfersCount=inforows[0].wetho_tranfersCount;
+            data.totalSupply=MISC_numberFormating(Math.round(100*(inforows[0].wetho_totalSupply/1E18)/100));
+            data.holdersCount=inforows[0].wetho_holdersCount;
+            data.percentageSupply=Math.round(10000*((inforows[0].wetho_totalSupply/1E18)/inforows[0].coin_1_supply))/100;
+    
+    
+            let content2_24hrs = "";
+            let content2_7d = "";
+            let content2_30d = "";
+            let marketcapList = [];
+            let marketcapList_7d = [];
+            let marketcapList_30d = [];
+    
+            let labels_7d = [];
+            let labels_30d = [];
+    
+            let i;
+            for (i = 0; i < inforows.length; i++) {
+                if (inforows[i].coin_1_marketcap == null)
+                    inforows[i].coin_1_marketcap = 0;
+            }
+            for (i = 0; i < 24; i++) {
+                marketcapList[i] = Math.round(inforows[i].coin_1_quote * inforows[i].wetho_totalSupply / 1E16) / 100;
+            }
+    
+            for (i = 0; i < 168; i++) {
+                marketcapList_7d[i] = Math.round(inforows[i].coin_1_quote * inforows[i].wetho_totalSupply / 1E16) / 100;
+                labels_7d.push(-i + " hr");
+            }
+    
+            for (i = 0; i < inforows.length; i++) {
+                marketcapList_30d[i] = Math.round(inforows[i].coin_1_quote * inforows[i].wetho_totalSupply / 1E16) / 100;
+                labels_30d.push(-i + "hr");
+            }
+    
+    
+            let chartobj2_24hrs = {
+                type: 'bar',
+        
+                data: {
+                    labels:
+                        ['Now', '-1hr', '-2hr', '-3hr', '-4hr', '-5hr', '-6hr', '-7hr', '-8hr', '-9hr', '-10hr', '-11hr', '-12hr', '-13hr', '-14hr', '-15hr', '-16hr', '-17hr', '-18hr', '-19hr', '-20hr', '-21hr', '-22hr', '-23hr'],
+                    datasets:
+                        [{
+                            'label': 'wETHO market cap (USD)',
+                            data: marketcapList,
+                            backgroundColor: 'rgb(171,47,73)'
+                        }]
+                },
+                options: {
+                    responsive: true
+                }
+            };
+            // Create charts
+            content2_24hrs += "<canvas id='chartjs-2_24hrs' class='chartjs'></canvas>";
+            content2_24hrs += "<script>new Chart(document.getElementById('chartjs-2_24hrs')," + JSON.stringify(chartobj2_24hrs) + ");</script>";
+    
+            let chartobj2_7d = {
+                type: 'bar',
+                data: {
+                    labels: labels_7d,
+                    datasets:
+                        [{
+                            'label': 'wETHO market cap (MUSD)',
+                            data: marketcapList_7d,
+                            backgroundColor: 'rgb(171,47,73)'
+                        }]
+            
+                },
+                options: {
+                    responsive: true,
+                }
+            };
+            // Create charts
+            content2_7d += "<canvas id='chartjs-2-7d' class='chartjs'></canvas>";
+            content2_7d += "<script>new Chart(document.getElementById('chartjs-2-7d')," + JSON.stringify(chartobj2_7d) + ");</script>";
+    
+            let chartobj2_30d = {
+                type: 'bar',
+                data: {
+                    labels: labels_30d,
+                    datasets:
+                        [{
+                            'label': 'wETHO market cap (MUSD)',
+                            data: marketcapList_30d,
+                            backgroundColor: 'rgb(171,47,73)'
+                        }]
+            
+                },
+                options: {
+                    responsive: true,
+                }
+            };
+            // Create charts
+            content2_30d += "<canvas id='chartjs-2-30d' class='chartjs'></canvas>";
+            content2_30d += "<script>new Chart(document.getElementById('chartjs-2-30d')," + JSON.stringify(chartobj2_30d) + ");</script>";
+    
+            inforows[0].coin_1_quote = Math.trunc(inforows[0].coin_1_quote * 10000) / 10000;
+            inforows[0].coin_2_quote = Math.trunc(inforows[0].coin_2_quote * 10000) / 10000;
+            inforows[0].coin_3_quote = Math.trunc(inforows[0].coin_3_quote * 10000) / 10000;
+            inforows[0].coin_4_quote = Math.trunc(inforows[0].coin_4_quote * 10000) / 10000;
+    
+            inforows[0].coin_1_marketcap = Math.round(inforows[0].coin_1_quote * inforows[0].coin_1_supply / 1E4) / 100 + "MUSD";
+            inforows[0].coin_1_percent1d = Math.round(inforows[0].coin_1_percent1d / 100);
+            inforows[0].coin_1_percent30d = Math.round(inforows[0].coin_1_percent30d / 100);
+            inforows[0].coin_2_percent1d = Math.round(inforows[0].coin_2_percent1d / 100);
+            inforows[0].coin_2_percent30d = Math.round(inforows[0].coin_2_percent30d / 100);
+            inforows[0].coin_3_percent1d = Math.round(inforows[0].coin_3_percent1d / 100);
+            inforows[0].coin_3_percent30d = Math.round(inforows[0].coin_3_percent30d / 100);
+            inforows[0].coin_4_percent1d = Math.round(inforows[0].coin_4_percent1d / 100);
+            inforows[0].coin_4_percent30d = Math.round(inforows[0].coin_4_percent30d / 100);
+    
+            inforows[0].format_coin_1_supply = MISC_numberFormating(parseInt(inforows[0].coin_1_supply));
+            inforows[0].format_coin_2_supply = MISC_numberFormating(parseInt(inforows[0].coin_2_supply));
+            inforows[0].format_coin_3_supply = MISC_numberFormating(parseInt(inforows[0].coin_3_supply));
+            inforows[0].format_coin_4_supply = MISC_numberFormating(parseInt(inforows[0].coin_4_supply));
+    
+            inforows[0].norm_coin_1_supply = Math.round(10 * inforows[0].coin_1_supply / inforows[0].coin_1_supply) / 10;
+            inforows[0].norm_coin_2_supply = Math.round(10 * inforows[0].coin_2_supply / inforows[0].coin_1_supply) / 10;
+            inforows[0].norm_coin_3_supply = Math.round(10 * inforows[0].coin_3_supply / inforows[0].coin_1_supply) / 10;
+            inforows[0].norm_coin_4_supply = Math.round(10 * inforows[0].coin_4_supply / inforows[0].coin_1_supply) / 10;
+    
+            let dateParts = inforows[0].date;
+            data.date = dateParts + " GMT ";
+    
+            res.render('dash_wetho', {
+                title: 'ETHO | Financial dashboard',
+                data: data,
+                chart1_24hrs: content2_24hrs,
+                chart1_7d: content2_7d,
+                chart1_30d: content2_30d,
+            });
+        })
+})
+
+
 /* GET home page. */
 router.get('/dash_activity', async function(req, res, next) {
     
@@ -74,6 +220,7 @@ async function read_repos(octokit, res, page) {
     });
     
 }
+
 
 
 /* GET home page. */
@@ -178,7 +325,7 @@ router.get('/dash_richlist', async function(req, res, next) {
             content2 += "<canvas id='chartjs-2' class='chartjs' width='1540' height='770' style='display: block; height: 385px; width: 770px;'></canvas>";
             content2 += "<script>new Chart(document.getElementById('chartjs-2')," + JSON.stringify(chartobj2) + ");</script>";
     
-            let dateParts = inforows[0].date.toLocaleTimeString();
+            let dateParts = inforows[0].date;
             data.date=dateParts+ " GMT ";
     
     
@@ -305,7 +452,7 @@ router.get('/dash_ipfs', async function(req, res, next) {
             content2 += "<canvas id='chartjs-2' class='chartjs' width='1540' height='770' style='display: block; height: 385px; width: 770px;'></canvas>";
             content2 += "<script>new Chart(document.getElementById('chartjs-2')," + JSON.stringify(chartobj2) + ");</script>";
     
-            let dateParts = inforows[0].date.toLocaleTimeString();
+            let dateParts = inforows[0].date;
             data.date = dateParts + " GMT ";
     
             res.render('dash_ipfs', {
@@ -441,7 +588,7 @@ router.get('/dash_exchanges', async function(req, res, next) {
             content2 += "<canvas id='chartjs-2' class='chartjs' width='1540' height='770' style='display: block; height: 385px; width: 770px;'></canvas>";
             content2 += "<script>new Chart(document.getElementById('chartjs-2')," + JSON.stringify(chartobj2) + ");</script>";
     
-            let dateParts = inforows[0].date.toLocaleTimeString();
+            let dateParts = inforows[0].date;
             data.date=dateParts+ " GMT ";
     
             res.render('dash_exchanges', {
@@ -463,9 +610,9 @@ router.get('/dash_health', async function(req, res, next) {
     var title;
     
     
-    logger.info("#server.routes.index.get: %s", req.headers.host);
+    logger.info("#server.routes.index.get.dash_health: %s");
     
-    let vsql = "SELECT * FROM info ORDER BY id DESC LIMIT 25";
+    let vsql = "SELECT * FROM info ORDER BY id DESC LIMIT 1";
     
     pool.query(vsql)
         .then(async (inforows) => {
@@ -522,7 +669,7 @@ router.get('/dash_health', async function(req, res, next) {
                         })
                     })
             }
-            let dateParts = inforows[0].date.toLocaleTimeString();
+            let dateParts = inforows[0].date;
             data.date = dateParts + " GMT ";
             
             res.render('dash_health', {
@@ -700,7 +847,7 @@ router.get('/dash_financial', function(req, res, next) {
                     inforows[0].norm_coin_3_supply = Math.round(10*inforows[0].coin_3_supply/inforows[0].coin_1_supply)/10;
                     inforows[0].norm_coin_4_supply = Math.round(10*inforows[0].coin_4_supply/inforows[0].coin_1_supply)/10;
 
-                    let dateParts = inforows[0].date.toLocaleTimeString();
+                    let dateParts = inforows[0].date;
                     data.date=dateParts+ " GMT ";
                     
                     res.render('dash_financial', {
@@ -741,7 +888,7 @@ router.get('/dash_financial2', async function(req, res, next) {
         .then(async (inforows) => {
             data.year = MISC_numberFormating(Math.round(inforows[0].coin_1_quote / 0.005 * 100000) / 100);
     
-            let dateParts = inforows[0].date.toLocaleTimeString();
+            let dateParts = inforows[0].date;
             data.date = dateParts + " GMT ";
     
             res.render('dash_financial2', {
@@ -859,7 +1006,7 @@ router.get('/dash_cmctrending', function(req, res, next) {
                     inforows[0].coin_4_percent30d = Math.round(inforows[0].coin_4_percent30d/100);
     
     
-                    let dateParts = inforows[0].date.toLocaleTimeString();
+                    let dateParts = inforows[0].date;
                     data.date=dateParts+ " GMT ";
     
                     res.render('dash_cmctrending', {
@@ -1082,7 +1229,7 @@ router.get('/dash_nodes', function(req, res, next) {
                 content3 = "<canvas id='chartjs-3' class='chartjs'></canvas>";
                 content3 += "<script>new Chart(document.getElementById('chartjs-3')," + JSON.stringify(chartobj3) + ");</script>";
     
-                let dateParts = inforows[0].date.toLocaleTimeString();
+                let dateParts = inforows[0].date;
                 data.date=dateParts+ " GMT ";
     
     
