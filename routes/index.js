@@ -5,7 +5,6 @@ const ping = require('ping');
 const checkCertExpiration = require('check-cert-expiration');
 const tabletojson = require('tabletojson').Tabletojson;
 const ethofsSDK = require('@ethofs/sdk');
-const { Octokit } = require("@octokit/core");
 
 
 var express = require('express');
@@ -21,6 +20,123 @@ router.get('/', function(req, res, next) {
         title: 'ETHO | Coin dashboard'
     });
 });
+
+/* GET home page. */
+router.get('/dash_overview', async function(req, res, next) {
+    
+    logger.info("#server.routes.index.get.dash_overview");
+    let vsql = "SELECT * FROM info ORDER BY id DESC LIMIT 5040";
+    
+    pool.query(vsql)
+        .then(async (inforows) => {
+    
+            let data = [];
+            let label = [];
+    
+            data.supply = MISC_numberFormating(Math.round(inforows[0].coin_1_supply * 100) / 100);
+    
+            let rgbstr = [];
+            let supply = [];
+            label.push("Wrapped ETHO");
+            rgbstr.push('rgb(2,84,248)');
+            supply.push(Math.round(100*(inforows[0].wetho_totalSupply/1E18)/100))
+    
+            label.push("Exchanges");
+            rgbstr.push('rgb(191,3,243)');
+            let exchange_all=inforows[0].etho_exchange_stex+inforows[0].etho_exchange_graviex+inforows[0].etho_exchange_probit+inforows[0].etho_exchange_mercatox;
+            supply.push(Math.round((100*exchange_all)/100));
+    
+            label.push("Dev fund");
+            rgbstr.push('rgb(70,248,5)');
+            let devfund = inforows[0].etho_devfund;
+            supply.push(Math.round((100*devfund)/100));
+    
+    
+            let nodes_collateral=parseInt(inforows[0].etho_active_gatewaynodes*30000)+ parseInt(inforows[0].etho_active_masternode*15000)+ parseInt(inforows[0].etho_active_servicenodes*5000);
+            label.push("Nodes");
+            rgbstr.push('rgb(239,66,127)');
+            supply.push(Math.round((100*nodes_collateral)/100));
+    
+            let remain=Math.round(100*(inforows[0].coin_1_supply-inforows[0].wetho_totalSupply/1E18-exchange_all-inforows[0].etho_devfund-nodes_collateral))/100;
+            
+            label.push("Remain");
+            rgbstr.push('rgb(7,7,7)');
+            supply.push(Math.round((100*remain)/100));
+    
+    
+            let chartobj = {
+                type: 'pie',
+                data: {
+                    labels: label,
+    
+                    datasets:
+                        [{
+                            'label': "Supply distribution",
+                            backgroundColor: rgbstr,
+                            data: supply
+                        }]
+                },
+                options: {
+                    responsive: true,
+                }
+            };
+            // Create charts
+            let content1 = "";
+            content1 += "<canvas id='chartjs-1' class='chartjs' width='1540' height='770' style='display: block; height: 385px; width: 770px;'></canvas>";
+            content1 += "<script>new Chart(document.getElementById('chartjs-1')," + JSON.stringify(chartobj) + ");</script>";
+    
+    
+            res.render('dash_overview', {
+                title: 'ETHO | Overview',
+                data: data,
+                chart1: content1
+            });
+        })
+        .catch((error)=>{
+            logger.error("##server.routes.index.get.dash_overview: Error %s", error);
+        })
+});
+
+
+/* GET home page. */
+router.get('/dash_activity', async function(req, res, next) {
+    
+    logger.info("#server.routes.index.get.dash_activity");
+    let data=[];
+    
+    
+    res.render('dash_activity', {
+        title: 'ETHO | Activity',
+        data: data
+    });
+});
+
+async function read_repos(octokit, res, page) {
+    
+    await octokit.request('GET /orgs/{org}/repos', {
+        org: 'Ether1Project',
+        page: page
+    }).then((ok) => {
+        let i;
+        let data;
+        
+        let headers=ok.headers.link.split(",");
+        for (i=0;i<headers.length;i++) {
+            if (headers[i].search("; rel=\"next\"")>0) {
+                console.log("++++++++");
+                data=headers[i].match(/page=(\d*)/);
+                console.log(data[1]);
+                read_repos(octokit, res, data[1]);
+            }
+        }
+        logger.info("#server.routes.index.get.dash_activity: Nr of repos: %s", ok.data.length);
+        res+=ok.data.length;
+        
+        return(res);
+    });
+    
+}
+
 
 router.get('/dash_wetho', async function(req, res, next) {
     
@@ -38,12 +154,20 @@ router.get('/dash_wetho', async function(req, res, next) {
             data.percentageSupply=Math.round(10000*((inforows[0].wetho_totalSupply/1E18)/inforows[0].coin_1_supply))/100;
     
     
+            let content1_24hrs = "";
+            let content1_7d = "";
+            let content1_30d = "";
             let content2_24hrs = "";
             let content2_7d = "";
             let content2_30d = "";
+    
             let marketcapList = [];
             let marketcapList_7d = [];
             let marketcapList_30d = [];
+            let wethoList = [];
+            let wethoList_7d = [];
+            let wethoList_30d = [];
+    
     
             let labels_7d = [];
             let labels_30d = [];
@@ -55,15 +179,18 @@ router.get('/dash_wetho', async function(req, res, next) {
             }
             for (i = 0; i < 24; i++) {
                 marketcapList[i] = Math.round(inforows[i].coin_1_quote * inforows[i].wetho_totalSupply / 1E16) / 100;
+                wethoList[i] = Math.round(inforows[i].wetho_totalSupply/1E16) / 100;
             }
     
             for (i = 0; i < 168; i++) {
                 marketcapList_7d[i] = Math.round(inforows[i].coin_1_quote * inforows[i].wetho_totalSupply / 1E16) / 100;
+                wethoList_7d[i] = Math.round(inforows[i].wetho_totalSupply/1E16) / 100;
                 labels_7d.push(-i + " hr");
             }
     
             for (i = 0; i < inforows.length; i++) {
                 marketcapList_30d[i] = Math.round(inforows[i].coin_1_quote * inforows[i].wetho_totalSupply / 1E16) / 100;
+                wethoList_30d[i] = Math.round(inforows[i].wetho_totalSupply/1E16) / 100;
                 labels_30d.push(-i + "hr");
             }
     
@@ -95,7 +222,7 @@ router.get('/dash_wetho', async function(req, res, next) {
                     labels: labels_7d,
                     datasets:
                         [{
-                            'label': 'wETHO market cap (MUSD)',
+                            'label': 'wETHO market cap (USD)',
                             data: marketcapList_7d,
                             backgroundColor: 'rgb(171,47,73)'
                         }]
@@ -115,7 +242,7 @@ router.get('/dash_wetho', async function(req, res, next) {
                     labels: labels_30d,
                     datasets:
                         [{
-                            'label': 'wETHO market cap (MUSD)',
+                            'label': 'wETHO market cap (USD)',
                             data: marketcapList_30d,
                             backgroundColor: 'rgb(171,47,73)'
                         }]
@@ -129,97 +256,88 @@ router.get('/dash_wetho', async function(req, res, next) {
             content2_30d += "<canvas id='chartjs-2-30d' class='chartjs'></canvas>";
             content2_30d += "<script>new Chart(document.getElementById('chartjs-2-30d')," + JSON.stringify(chartobj2_30d) + ");</script>";
     
-            inforows[0].coin_1_quote = Math.trunc(inforows[0].coin_1_quote * 10000) / 10000;
-            inforows[0].coin_2_quote = Math.trunc(inforows[0].coin_2_quote * 10000) / 10000;
-            inforows[0].coin_3_quote = Math.trunc(inforows[0].coin_3_quote * 10000) / 10000;
-            inforows[0].coin_4_quote = Math.trunc(inforows[0].coin_4_quote * 10000) / 10000;
+            let chartobj1_24hrs = {
+                type: 'bar',
+        
+                data: {
+                    labels:
+                        ['Now', '-1hr', '-2hr', '-3hr', '-4hr', '-5hr', '-6hr', '-7hr', '-8hr', '-9hr', '-10hr', '-11hr', '-12hr', '-13hr', '-14hr', '-15hr', '-16hr', '-17hr', '-18hr', '-19hr', '-20hr', '-21hr', '-22hr', '-23hr'],
+                    datasets:
+                        [{
+                            'label': 'wETHO Supply',
+                            data: wethoList,
+                            backgroundColor: 'rgb(3,149,248)'
+                        }]
+                },
+                options: {
+                    responsive: true
+                }
+            };
+            // Create charts
+            content1_24hrs += "<canvas id='chartjs-1_24hrs' class='chartjs'></canvas>";
+            content1_24hrs += "<script>new Chart(document.getElementById('chartjs-1_24hrs')," + JSON.stringify(chartobj1_24hrs) + ");</script>";
     
-            inforows[0].coin_1_marketcap = Math.round(inforows[0].coin_1_quote * inforows[0].coin_1_supply / 1E4) / 100 + "MUSD";
-            inforows[0].coin_1_percent1d = Math.round(inforows[0].coin_1_percent1d / 100);
-            inforows[0].coin_1_percent30d = Math.round(inforows[0].coin_1_percent30d / 100);
-            inforows[0].coin_2_percent1d = Math.round(inforows[0].coin_2_percent1d / 100);
-            inforows[0].coin_2_percent30d = Math.round(inforows[0].coin_2_percent30d / 100);
-            inforows[0].coin_3_percent1d = Math.round(inforows[0].coin_3_percent1d / 100);
-            inforows[0].coin_3_percent30d = Math.round(inforows[0].coin_3_percent30d / 100);
-            inforows[0].coin_4_percent1d = Math.round(inforows[0].coin_4_percent1d / 100);
-            inforows[0].coin_4_percent30d = Math.round(inforows[0].coin_4_percent30d / 100);
+            let chartobj1_7d = {
+                type: 'bar',
+                data: {
+                    labels: labels_7d,
+                    datasets:
+                        [{
+                            'label': 'wETHO supply',
+                            data: wethoList_7d,
+                            backgroundColor: 'rgb(3,149,248)'
+                        }]
+            
+                },
+                options: {
+                    responsive: true,
+                }
+            };
+            // Create charts
+            content1_7d += "<canvas id='chartjs-1-7d' class='chartjs'></canvas>";
+            content1_7d += "<script>new Chart(document.getElementById('chartjs-1-7d')," + JSON.stringify(chartobj1_7d) + ");</script>";
     
-            inforows[0].format_coin_1_supply = MISC_numberFormating(parseInt(inforows[0].coin_1_supply));
-            inforows[0].format_coin_2_supply = MISC_numberFormating(parseInt(inforows[0].coin_2_supply));
-            inforows[0].format_coin_3_supply = MISC_numberFormating(parseInt(inforows[0].coin_3_supply));
-            inforows[0].format_coin_4_supply = MISC_numberFormating(parseInt(inforows[0].coin_4_supply));
+            let chartobj1_30d = {
+                type: 'bar',
+                data: {
+                    labels: labels_30d,
+                    datasets:
+                        [{
+                            'label': 'wETHO supply',
+                            data: wethoList_30d,
+                            backgroundColor: 'rgb(3,149,248)'
+                        }]
+            
+                },
+                options: {
+                    responsive: true,
+                }
+            };
+            // Create charts
+            content1_30d += "<canvas id='chartjs-1-30d' class='chartjs'></canvas>";
+            content1_30d += "<script>new Chart(document.getElementById('chartjs-1-30d')," + JSON.stringify(chartobj1_30d) + ");</script>";
     
-            inforows[0].norm_coin_1_supply = Math.round(10 * inforows[0].coin_1_supply / inforows[0].coin_1_supply) / 10;
-            inforows[0].norm_coin_2_supply = Math.round(10 * inforows[0].coin_2_supply / inforows[0].coin_1_supply) / 10;
-            inforows[0].norm_coin_3_supply = Math.round(10 * inforows[0].coin_3_supply / inforows[0].coin_1_supply) / 10;
-            inforows[0].norm_coin_4_supply = Math.round(10 * inforows[0].coin_4_supply / inforows[0].coin_1_supply) / 10;
     
             let dateParts = inforows[0].date;
             data.date = dateParts + " GMT ";
     
             res.render('dash_wetho', {
-                title: 'ETHO | Financial dashboard',
+                title: 'ETHO | Wrapped ETHO',
                 data: data,
-                chart1_24hrs: content2_24hrs,
-                chart1_7d: content2_7d,
-                chart1_30d: content2_30d,
+                chart1_24hrs: content1_24hrs,
+                chart1_7d: content1_7d,
+                chart1_30d: content1_30d,
+                chart2_24hrs: content2_24hrs,
+                chart2_7d: content2_7d,
+                chart2_30d: content2_30d,
+    
             });
         })
 })
 
 
-/* GET home page. */
-router.get('/dash_activity', async function(req, res, next) {
-    
-    logger.info("#server.routes.index.get.dash_activity: %s", req.headers.host);
-    let data=[];
-    
-    const octokit = new Octokit({ auth: config.GITHUB });
 
-    console.log(await read_repos(octokit, 0, 1));
-    console.log("+++++");
-    await octokit.request("GET /orgs/{org}/events", {
-        org: "Ether1Project",
-        type: "public"
-    }).then((ok)=> {
-        let bd;
-        logger.info("#server.routes.index.get.dash_activity: Length: %s", ok.data.length);
-    })
-        .catch((error)=>{
-            logger.error("#server.routes.index.get.dash_activity: Error %s",error);
-        })
-    
-    
-    res.render('dash_activity', {
-        title: 'ETHO | Activity'
-    });
-});
 
-async function read_repos(octokit, res, page) {
-    
-    await octokit.request('GET /orgs/{org}/repos', {
-        org: 'Ether1Project',
-        page: page
-    }).then((ok) => {
-        let i;
-        let data;
-
-        let headers=ok.headers.link.split(",");
-        for (i=0;i<headers.length;i++) {
-            if (headers[i].search("; rel=\"next\"")>0) {
-                console.log("++++++++");
-                data=headers[i].match(/page=(\d*)/);
-                console.log(data[1]);
-                read_repos(octokit, res, data[1]);
-            }
-        }
-        logger.info("#server.routes.index.get.dash_activity: Nr of repos: %s", ok.data.length);
-        res+=ok.data.length;
-        
-        return(res);
-    });
-    
-}
 
 
 
@@ -610,25 +728,28 @@ router.get('/dash_health', async function(req, res, next) {
     var title;
     
     
-    logger.info("#server.routes.index.get.dash_health: %s");
+    logger.info("#server.routes.index.get.dash_health");
     
     let vsql = "SELECT * FROM info ORDER BY id DESC LIMIT 1";
     
     pool.query(vsql)
         .then(async (inforows) => {
             
-            let server = ["blocks.ethoprotocol.com", "explorer.ethoprotocol.com", "explorer2.ethoprotocol.com", "info.ethoprotocol.com", "www.ethoprotocol.com", "nodes.ethoprotocol.com", "richlist.ethoprotocol.com", "uploads.ethoprotocol.com", "wallet.ethoprotocol.com", "stats.ethoprotocol.com"];
+            let server = ["explorer.ethoprotocol.com", "explorer2.ethoprotocol.com", "info.ethoprotocol.com", "www.ethoprotocol.com", "nodes.ethoprotocol.com", "richlist.ethoprotocol.com", "uploads.ethoprotocol.com", "wallet.ethoprotocol.com", "stats.ethoprotocol.com"];
             let data = [];
             let i;
-            
-            
+    
+    
             for (i = 0; i < server.length; i++) {
                 await ping.promise.probe(server[i])
                     .then(async (pingres) => {
                         await got('https://' + server[i])
                             .then(async (response) => {
+                                logger.info("#server.routes.index.get.dash_health: Pinging server %s", server[i]);
                                 await (async function () {
                                     try {
+                                        logger.info("#server.routes.index.get.dash_health: Cert checking server %s", server[i]);
+    
                                         const {daysLeft, host, port} = await checkCertExpiration(server[i]);
                                         
                                         data.push({
@@ -669,6 +790,8 @@ router.get('/dash_health', async function(req, res, next) {
                         })
                     })
             }
+            logger.info("#server.routes.index.get.dash_health: Render page");
+    
             let dateParts = inforows[0].date;
             data.date = dateParts + " GMT ";
             
@@ -676,6 +799,9 @@ router.get('/dash_health', async function(req, res, next) {
                 title: 'ETHO | Coin dashboard',
                 data: data
             });
+        })
+        .catch((error)=>{
+            logger.error("#server..routes.index.get.dash_health: Error: %s", error);
         })
 });
 

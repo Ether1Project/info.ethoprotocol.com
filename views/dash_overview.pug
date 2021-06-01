@@ -1,0 +1,44 @@
+extends layout
+
+block content
+
+    // Content Header (Page header)
+    .content-header.sty-one
+        h1 Dashboard - Overview
+        ol.breadcrumb
+            li
+                a(href='#') Home
+            li
+                i.fa.fa-angle-right
+                | Dashboard - Overview
+    // Main content
+    .content
+        // Small boxes (Stat box)
+        .row
+            .col-lg-3.col-sm-6.col-xs-12
+                .info-box.bg-green.text-white
+                    span.info-box-icon.bg-transparent
+                        i.ti-wallet.text-white
+                    .info-box-content
+                        h6.info-box-text.text-white ETHO circulating supply
+                        h1.text-white= data.supply
+                        span.progress-description.text-white  ETHO
+                    // /.info-box-content
+                // /.info-box
+        // /.col
+        // /.row
+        // Main row
+        script(src="/dist/js/chart.js")
+        .row
+            .col-md-9.d-flex
+                .card.w-100
+                    .card-body
+                        h4.card-title.text-black Supply distribution
+                        .info-box
+                            .m-t-2
+                                p !{chart1}
+
+
+
+
+    // /.content

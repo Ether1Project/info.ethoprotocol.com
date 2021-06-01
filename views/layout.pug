@@ -73,6 +73,8 @@ head
             li.active
               a(href='/') Intro
             li
+              a(href='/dash_overview') ETHO supply distribution
+            li
               a(href='/dash_financial') ETHO financial
 
             li
@@ -81,7 +83,7 @@ head
               a(href='/dash_cmctrending') ETHO trending
             li
               a(href='/dash_nodes') ETHO nodes
-            li
+//            li
               a(href='/dash_health') ETHO asset health
             li
               a(href='/dash_exchanges') ETHO exchanges
@@ -116,15 +118,16 @@ head
     each error, i in errors
       div(class="alert alert-danger") #{error.msg}
 
+
   block content
 
   // /.content-wrapper
   footer.main-footer
     if !data
-      .pull-right.hidden-xs Version 1.9
+      .pull-right.hidden-xs Version 1.10
     else
       .pull-right.hidden-xs= data.date
-        | | Version 1.9
+        | | Version 1.10
     | Copyright © 2021 ETHO protocol. All rights reserved.
 // ./wrapper
 // jQuery 3

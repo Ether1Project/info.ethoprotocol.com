@@ -17,6 +17,8 @@ const got = require('got');
 
 const ethofsSDK = require('@ethofs/sdk');
 const ethofs = ethofsSDK();
+const { Octokit } = require("@octokit/core");
+
 
 
 
@@ -161,14 +163,71 @@ email
     .catch(console.error);
 
 
+async function read_repos(octokit, res, page, fullname) {
+    
+    await octokit.request('GET /orgs/{org}/repos', {
+        org: 'Ether1Project',
+        page: page
+    }).then(async (ok) => {
+        let i;
+        let data;
+        for (i=0;i<ok.data.length;i++) {
+            fullname.push(ok.data[i].full_name);
+            console.log(ok.data[i].full_name);
+        }
+        let headers=ok.headers.link.split(",");
+        for (i=0;i<headers.length;i++) {
+            if (headers[i].search("; rel=\"next\"")>0) {
+                data=headers[i].match(/page=(\d*)/);
+                res+=await read_repos(octokit, res, data[1], fullname);
+            }
+        }
+        res=0.0+res+ok.data.length;
+    });
+    return(res);
+}
+
+async function countGithub(octokit, repos) {
+    console.log(repos);
+    await octokit.request('GET /repos/{owner}/{repo}/stats/participation', {
+        owner: "Ether1Project",
+        repo: repos
+    }).then(async (ok) => {
+        console.log(ok.data.all);
+    })
+        .catch((error)=>{
+            logger.error('#server.app.read_repos: Error %s', error);
+        })
+}
+
+
 // Aimed to be run every 24 hours
 async function update1hrsDatabase() {
+    let i;
+    let repo_nrOfRepos;
+    let repo_names=[];
+/*
+    const octokit = new Octokit({ auth: config.GITHUB });
 
+    
+    repo_nrOfRepos=await read_repos(octokit, 0, 1, repo_names);
+    logger.info("#server.app.update1hrsDatabase: Nr of Repos %s",repo_nrOfRepos);
+    
+    let repo_info;
+    let name;
+    for (i=0;i<repo_names.length;i++) {
+        console.log(repo_names[i]);
+        name=repo_names[i].split("/");
+        repo_info=await countGithub(octokit, name[1]); // or count anything you like
+        console.log(repo_info);
+    
+    }
+*/
+    
     let wETHO;
     await got('https://api.ethplorer.io/getTokenInfo/0x99676c9fa4c77848aeb2383fcfbd7e980dc25027?apiKey='+config.ETHPLORERKEY)
         .then((res) => {
             wETHO = JSON.parse(res.body);
-            console.log(wETHO);
         });
             
             
