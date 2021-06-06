@@ -5,6 +5,9 @@ block content
     // Content Header (Page header)
     .content-header.sty-one
         h1 Dashboard - Overview
+        a.twitter-share-button(href='https://twitter.com/intent/tweet?text=Great%20info%20about%20ETHO%20protocol.%20Check%20out%20this%20page.')
+            | Tweet ths page
+
         ol.breadcrumb
             li
                 a(href='#') Home
@@ -30,7 +33,7 @@ block content
         // Main row
         script(src="/dist/js/chart.js")
         .row
-            .col-md-9.d-flex
+            .col-md-6.d-flex
                 .card.w-100
                     .card-body
                         h4.card-title.text-black Supply distribution

@@ -5,6 +5,9 @@ block content
     // Content Header (Page header)
     .content-header.sty-one
         h1 Dashboard - Nodes
+        a.twitter-share-button(href='https://twitter.com/intent/tweet?text=Great%20info%20about%20ETHO%20protocol.%20Check%20out%20this%20page.')
+            | Tweet ths page
+
         ol.breadcrumb
             li
                 a(href='#') Home
@@ -32,7 +35,7 @@ block content
                     span.info-box-icon.bg-transparent
                         i.ti-wallet.text-white
                     .info-box-content
-                        h6.info-box-text.text-white ETHO maser nodes
+                        h6.info-box-text.text-white ETHO master nodes
                         h1.text-white= db.etho_active_masternode
                         span.progress-description.text-white= ethofsstats.masternode_reward
                             |  ETHO per Day

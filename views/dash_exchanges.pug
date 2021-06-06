@@ -5,6 +5,9 @@ block content
     // Content Header (Page header)
     .content-header.sty-one
         h1 Dashboard - Exchanges
+        a.twitter-share-button(href='https://twitter.com/intent/tweet?text=Great%20info%20about%20ETHO%20protocol.%20Check%20out%20this%20page.')
+            | Tweet ths page
+
         ol.breadcrumb
             li
                 a(href='#') Home
@@ -185,6 +188,43 @@ block content
 
 
         // /.row
+        .row
+            .col-lg-3.col-sm-6.col-xs-12
+                .info-box.bg-black
+                    span.info-box-icon.bg-transparent
+                        i.ti-exchange-vertical.text-white
+                    .info-box-content
+                        h6.info-box-text.text-white Kucoin
+                        h1.text-white= data.exchange_kucoin
+                        span.progress-description.text-white ETHO
+                    // /.info-box-content
+                // /.info-box
+            // /.col
+        .row
+            if data.kucoinFluctuation >= 0
+                .col-lg-3.col-sm-6.col-xs-12
+                    .info-box.bg-green
+                        span.info-box-icon.bg-transparent
+                            i.ti-exchange-vertical.text-white
+                        .info-box-content
+                            h6.info-box-text.text-white Kucoin fluctuation
+                            h1.text-white= data.kucoinFluctuation
+                            span.progress-description.text-white %
+                        // /.info-box-content
+                    // /.info-box
+                // /.col
+            else
+                .col-lg-3.col-sm-6.col-xs-12
+                    .info-box.bg-red
+                        span.info-box-icon.bg-transparent
+                            i.ti-exchange-vertical.text-white
+                        .info-box-content
+                            h6.info-box-text.text-white Kucoin fluctuation
+                            h1.text-white= data.kucoinFluctuation
+                            span.progress-description.text-white %
+                        // /.info-box-content
+                    // /.info-box
+                // /.col
 
 
         .row

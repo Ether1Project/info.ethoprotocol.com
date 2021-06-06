@@ -20,9 +20,6 @@ const ethofs = ethofsSDK();
 const { Octokit } = require("@octokit/core");
 
 
-
-
-
 const {MISC_ensureAuthenticated, MISC_validation, MISC_makeid, MISC_maketoken, MISC_checkOrigin} = require('./misc');
 
 // Init email setup
@@ -51,7 +48,7 @@ global.email = new Email({
 
 // Define the globals
 global.debugon=true;
-global.version="0.1.0";
+global.version="1.11";
 
 
 // Init database
@@ -59,7 +56,7 @@ if (global.config.development) {
     global.baseurl="http://localhost:"+global.config.PORT;
 }
 else {
-    global.baseurl="https://play.atheios.org";
+    global.baseurl="https://info.ethoprotocol.com";
 };
 
 // Instatiate database
@@ -229,7 +226,20 @@ async function update1hrsDatabase() {
         .then((res) => {
             wETHO = JSON.parse(res.body);
         });
-            
+    
+    
+    let wETHO_holder;
+    let exchange_kucoin=0;
+    await got('https://api.ethplorer.io/getTopTokenHolders/0x99676c9fA4c77848aEb2383fCFbD7e980dC25027?apiKey='+config.ETHPLORERKEY)
+        .then((res) => {
+            wETHO_holder = JSON.parse(res.body);
+            for (i=0; i<wETHO_holder.holders.length;i++) {
+                if (wETHO_holder.holders[i].address=="0xa1d8d972560c2f8144af871db508f0b0b10a3fbf") {
+                    exchange_kucoin=wETHO_holder.holders[i].balance/1E18;
+                }
+            }
+        });
+    console.log(exchange_kucoin);
             
             // Check first if the latest entry is larger than 1 hour back
     
@@ -254,6 +264,7 @@ async function update1hrsDatabase() {
                     case '0xccdbbb5d42e631ea6b040dee17fa78232ec4c87e':
                     case '0xe2c8cbec30c8513888f7a95171ea836f8802d981':
                     case '0xe82e114833c558496b7d2405584c5a2286b9170e':
+                    case '0x2edfef4716612b705993c73e69728beb6e28c57f':
                         break;
                     default:
                         etho_richlist.push({
@@ -388,7 +399,7 @@ async function update1hrsDatabase() {
                                                 "etho_trending, etho_watchlist, " +
                                                 "etho_activeUploadContracts, etho_totalNetworkStorageUse, etho_networkStorageAvailable, etho_active_gatewaynodes, etho_active_masternode, etho_active_servicenodes, " +
                                                 "etho_hashrate, etho_difficulty, " +
-                                                "etho_exchange_stex, etho_exchange_graviex, etho_exchange_mercatox, etho_exchange_probit, etho_devfund, " +
+                                                "etho_exchange_kucoin, etho_exchange_stex, etho_exchange_graviex, etho_exchange_mercatox, etho_exchange_probit, etho_devfund, " +
                                                 "etho_richlist, " +
                                                 "etho_gatewaynode_reward, etho_masternode_reward, etho_servicenode_reward, " +
                                                 "wetho_totalSupply, wetho_tranfersCount, wetho_holdersCount, date) VALUES ("
@@ -398,7 +409,7 @@ async function update1hrsDatabase() {
                                                 +jsonarr.data.STORJ.id + ",'" + jsonarr.data.STORJ.name + "','" + jsonarr.data.STORJ.symbol + "', " + jsonarr.data.STORJ.cmc_rank + ", " + jsonarr.data.STORJ.num_market_pairs + ", " + jsonarr.data.STORJ.circulating_supply + ", " + jsonarr.data.STORJ.quote.USD.price + "," + Math.round(jsonarr.data.STORJ.quote.USD.percent_change_24h * 100) + ", " + Math.round(jsonarr.data.STORJ.quote.USD.percent_change_7d * 100) + ", " + Math.round(jsonarr.data.STORJ.quote.USD.percent_change_30d * 100) + ", " +
                                                 pos + "," + etho_watchlist + "," + stats.activeUploadContracts + "," + stats.totalNetworkStorageUsed + "," + stats.networkStorageAvailable + "," +
                                                 stats.active_gatewaynodes + "," + stats.active_masternodes + "," + stats.active_servicenodes + "," + hashrate + "," + difficulty + "," +
-                                                exchange_stex + "," + exchange_graviex + "," + exchange_mercatox + "," + exchange_probit + "," + etho_devfund + ",'" + JSON.stringify(etho_richlist) + "'," +Math.round(stats.gatewaynode_reward*10) + "," + Math.round(stats.masternode_reward*10) + "," + Math.round(stats.servicenode_reward*10) + ",'" +
+                                                exchange_kucoin + "," + exchange_stex + "," + exchange_graviex + "," + exchange_mercatox + "," + exchange_probit + "," + etho_devfund + ",'" + JSON.stringify(etho_richlist) + "'," +Math.round(stats.gatewaynode_reward*10) + "," + Math.round(stats.masternode_reward*10) + "," + Math.round(stats.servicenode_reward*10) + ",'" +
                                                 wETHO.totalSupply + "'," + wETHO.transfersCount + "," + wETHO.holdersCount + ",'" + pool.mysqlNow() + "')";
                                         
                                         

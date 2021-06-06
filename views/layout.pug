@@ -76,15 +76,12 @@ head
               a(href='/dash_overview') ETHO supply distribution
             li
               a(href='/dash_financial') ETHO financial
-
             li
-              a(href='/dash_financial2') ETHO If i had ...
+              a(href='/dash_wetho') ETHO wrapped
             li
               a(href='/dash_cmctrending') ETHO trending
             li
               a(href='/dash_nodes') ETHO nodes
-//            li
-              a(href='/dash_health') ETHO asset health
             li
               a(href='/dash_exchanges') ETHO exchanges
             li
@@ -92,12 +89,15 @@ head
             li
               a(href='/dash_ipfs') ETHO IPFS
             li
-              a(href='/dash_wetho') ETHO wrapped
+              a(href='/dash_financial2') ETHO If i had ...
+
 
 //            li
               a(href='/dash_activity') ETHO activity
 //            li
               a(href='/dash_subscribe') Subscribe to events
+//            li
+              a(href='/dash_health') ETHO asset health
 
 
 
@@ -124,10 +124,10 @@ head
   // /.content-wrapper
   footer.main-footer
     if !data
-      .pull-right.hidden-xs Version 1.10
+      .pull-right.hidden-xs Version #{version}
     else
       .pull-right.hidden-xs= data.date
-        | | Version 1.10
+        | | Version #{version}
     | Copyright © 2021 ETHO protocol. All rights reserved.
 // ./wrapper
 // jQuery 3
@@ -137,3 +137,21 @@ script(src='dist/bootstrap/js/bootstrap.min.js')
 // template
 script(src='dist/js/niche.js')
 // Chartjs JavaScript
+script.
+  window.twttr = (function (d, s, id) {
+    var js, fjs = d.getElementsByTagName(s)[0],
+            t = window.twttr || {};
+    if (d.getElementById(id)) return t;
+    js = d.createElement(s);
+    js.id = id;
+    js.src = "https://platform.twitter.com/widgets.js";
+    fjs.parentNode.insertBefore(js, fjs);
+
+    t._e = [];
+    t.ready = function (f) {
+      t._e.push(f);
+    };
+
+    return t;
+  }(document, "script", "twitter-wjs"));
+

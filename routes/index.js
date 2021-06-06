@@ -15,10 +15,27 @@ router.get('/', function(req, res, next) {
     var currency;
     var title;
     
-    logger.info("#server.routes.index.get: %s", req.headers.host);
-    res.render('index', {
-        title: 'ETHO | Coin dashboard'
-    });
+    let data=[];
+    
+    let vsql = "SELECT * FROM info ORDER BY id DESC LIMIT 1";
+    
+    pool.query(vsql)
+        .then(async (inforows) => {
+    
+            let dateParts = inforows[0].date;
+            let now = Date.now();
+            data.date = dateParts + " GMT ";
+//            data.secs = (now - dateParts.getTime())/1000;
+            logger.info("Secs left %s", now);
+//            logger.info("Secs left %s", data.secs);
+    
+            logger.info("#server.routes.index.get: %s", req.headers.host);
+            res.render('index', {
+                version: version,
+                data: data,
+                title: 'ETHO | Coin dashboard'
+            });
+        });
 });
 
 /* GET home page. */
@@ -43,7 +60,7 @@ router.get('/dash_overview', async function(req, res, next) {
     
             label.push("Exchanges");
             rgbstr.push('rgb(191,3,243)');
-            let exchange_all=inforows[0].etho_exchange_stex+inforows[0].etho_exchange_graviex+inforows[0].etho_exchange_probit+inforows[0].etho_exchange_mercatox;
+            let exchange_all=getExchanges(inforows[0]);
             supply.push(Math.round((100*exchange_all)/100));
     
             label.push("Dev fund");
@@ -59,7 +76,7 @@ router.get('/dash_overview', async function(req, res, next) {
     
             let remain=Math.round(100*(inforows[0].coin_1_supply-inforows[0].wetho_totalSupply/1E18-exchange_all-inforows[0].etho_devfund-nodes_collateral))/100;
             
-            label.push("Remain");
+            label.push("HODL");
             rgbstr.push('rgb(7,7,7)');
             supply.push(Math.round((100*remain)/100));
     
@@ -87,6 +104,7 @@ router.get('/dash_overview', async function(req, res, next) {
     
     
             res.render('dash_overview', {
+                version: version,
                 title: 'ETHO | Overview',
                 data: data,
                 chart1: content1
@@ -106,6 +124,7 @@ router.get('/dash_activity', async function(req, res, next) {
     
     
     res.render('dash_activity', {
+        version: version,
         title: 'ETHO | Activity',
         data: data
     });
@@ -322,6 +341,7 @@ router.get('/dash_wetho', async function(req, res, next) {
             data.date = dateParts + " GMT ";
     
             res.render('dash_wetho', {
+                version: version,
                 title: 'ETHO | Wrapped ETHO',
                 data: data,
                 chart1_24hrs: content1_24hrs,
@@ -358,7 +378,7 @@ router.get('/dash_richlist', async function(req, res, next) {
             
             let labelstr = [];
             let max = supply;
-            let exchange_all=inforows[0].etho_exchange_stex+inforows[0].etho_exchange_graviex+inforows[0].etho_exchange_probit+inforows[0].etho_exchange_mercatox;
+            let exchange_all=getExchanges(inforows[0]);
             let rich=0;
             let devfund = inforows[0].etho_devfund;
     
@@ -448,6 +468,7 @@ router.get('/dash_richlist', async function(req, res, next) {
     
     
             res.render('dash_richlist', {
+                version: version,
                 title: 'ETHO | Richlist dashboard',
                 data: data,
                 chart1: content1,
@@ -574,6 +595,7 @@ router.get('/dash_ipfs', async function(req, res, next) {
             data.date = dateParts + " GMT ";
     
             res.render('dash_ipfs', {
+                version: version,
                 title: 'ETHO | IPFS dashboard',
                 data: data,
                 chart1: content1,
@@ -602,15 +624,17 @@ router.get('/dash_exchanges', async function(req, res, next) {
     
     pool.query(vsql)
         .then(async (inforows) => {
-            let exchange_all=inforows[0].etho_exchange_stex+inforows[0].etho_exchange_graviex+inforows[0].etho_exchange_probit+inforows[0].etho_exchange_mercatox;
+            let exchange_all=getExchanges(inforows[0]);
     
             data.push({
+                exchange_kucoin: MISC_numberFormating(inforows[0].etho_exchange_kucoin),
                 exchange_stex: MISC_numberFormating(inforows[0].etho_exchange_stex),
                 exchange_graviex: MISC_numberFormating(inforows[0].etho_exchange_graviex),
                 exchange_probit: MISC_numberFormating(inforows[0].etho_exchange_probit),
                 exchange_mercatox: MISC_numberFormating(inforows[0].etho_exchange_mercatox),
                 exchange_all: MISC_numberFormating(exchange_all),
                 exchange_percent: Math.round(exchange_all/bd.circulating_supply*10000)/100,
+                kucoinFluctuation: Math.round((inforows[0].etho_exchange_kucoin/inforows[23].etho_exchange_kucoin*100-100)*100)/100,
                 stexFluctuation: Math.round((inforows[0].etho_exchange_stex/inforows[23].etho_exchange_stex*100-100)*100)/100,
                 graviexFluctuation: Math.round((inforows[0].etho_exchange_graviex/inforows[23].etho_exchange_graviex*100-100)*100)/100,
                 probitFluctuation: Math.round((inforows[0].etho_exchange_probit/inforows[23].etho_exchange_probit*100-100)*100)/100,
@@ -620,8 +644,9 @@ router.get('/dash_exchanges', async function(req, res, next) {
             
             // Generate chart
             logger.info("#server.routes.index.get.dash_exchanges: Generating chart");
-            
+    
             let exchange_stex = [];
+            let exchange_kucoin = [];
             let exchange_graviex = [];
             let exchange_mercatox = [];
             let exchange_probit = [];
@@ -629,6 +654,7 @@ router.get('/dash_exchanges', async function(req, res, next) {
             for (i = 0; i < inforows.length; i++) {
                 if (inforows[i].etho_exchange_stex == null) {
                     inforows[i].etho_exchange_stex = 0;
+                    inforows[i].etho_exchange_kucoin = 0;
                     inforows[i].etho_exchange_graviex = 0;
                     inforows[i].etho_exchange_probit = 0;
                     inforows[i].etho_exchange_mercatox = 0;
@@ -636,6 +662,7 @@ router.get('/dash_exchanges', async function(req, res, next) {
                 }
             }
             for (i = 0; i < inforows.length; i++) {
+                exchange_kucoin[i] = (inforows[i].etho_exchange_kucoin);
                 exchange_stex[i] = (inforows[i].etho_exchange_stex);
                 exchange_graviex[i] = (inforows[i].etho_exchange_graviex);
                 exchange_probit[i] = (inforows[i].etho_exchange_probit);
@@ -649,19 +676,23 @@ router.get('/dash_exchanges', async function(req, res, next) {
                         ['Now', '-1hr', '-2hr', '-3hr', '-4hr', '-5hr', '-6hr', '-7hr', '-8hr', '-9hr', '-10hr', '-11hr', '-12hr', '-13hr', '-14hr', '-15hr', '-16hr', '-17hr', '-18hr', '-19hr', '-20hr', '-21hr', '-22hr1', '-23hr'],
                     datasets:
                         [{
-                            'label': 'Marcatox coin wallet',
+                            'label': 'Marcatox wallet',
                             data: exchange_mercatox,
                             backgroundColor: 'rgb(26,238,26)'
                         },{
-                            'label': 'Graviex coin wallet',
+                            'label': 'Graviex wallet',
                             data: exchange_graviex,
                             backgroundColor: 'rgb(239,239,12)'
                         },{
-                            'label': 'Probit coin wallet',
+                            'label': 'Probit wallet',
                             data: exchange_probit,
                             backgroundColor: 'rgb(236,13,13)'
                         },{
-                            'label': 'STEX coin wallet',
+                            'label': 'Kucoin wallet',
+                            data: exchange_kucoin,
+                            backgroundColor: 'rgb(8,28,1)'
+                        },{
+                            'label': 'STEX wallet',
                             data: exchange_stex,
                             backgroundColor: 'rgb(8,168,241)'
                         }
@@ -669,7 +700,13 @@ router.get('/dash_exchanges', async function(req, res, next) {
             
                 },
                 options: {
-                    responsive: true
+                    responsive: true,
+                    scales: {
+                        y: {
+                            stacked: true
+                        }
+                    }
+    
                 }
             };
             // Create charts
@@ -680,7 +717,7 @@ router.get('/dash_exchanges', async function(req, res, next) {
     
             let exchanges_percentage=[];
             for (i = 0; i < inforows.length; i++) {
-                exchanges_percentage[i]=(inforows[i].etho_exchange_stex+inforows[i].etho_exchange_graviex+inforows[i].etho_exchange_probit+inforows[i].etho_exchange_mercatox)/inforows[i].coin_1_supply;
+                exchanges_percentage[i]=100*(inforows[i].etho_exchange_kucoin+inforows[i].etho_exchange_stex+inforows[i].etho_exchange_graviex+inforows[i].etho_exchange_probit+inforows[i].etho_exchange_mercatox)/inforows[i].coin_1_supply;
             }
     
             let chartobj2 = {
@@ -698,9 +735,14 @@ router.get('/dash_exchanges', async function(req, res, next) {
             
                 },
                 options: {
-                    responsive: true
+                    responsive: true,
+                    scales: {
+                        y: {
+                            stacked: true,
+                       }
+                    }
                 }
-            };
+             };
             // Create charts
             let content2 = "";
             content2 += "<canvas id='chartjs-2' class='chartjs' width='1540' height='770' style='display: block; height: 385px; width: 770px;'></canvas>";
@@ -710,6 +752,7 @@ router.get('/dash_exchanges', async function(req, res, next) {
             data.date=dateParts+ " GMT ";
     
             res.render('dash_exchanges', {
+                version: version,
                 title: 'ETHO | Exchange dashboard',
                 data: data[0],
                 chart1: content,
@@ -796,6 +839,7 @@ router.get('/dash_health', async function(req, res, next) {
             data.date = dateParts + " GMT ";
             
             res.render('dash_health', {
+                version: version,
                 title: 'ETHO | Coin dashboard',
                 data: data
             });
@@ -905,7 +949,7 @@ router.get('/dash_financial', function(req, res, next) {
                         }
                     };
                     // Create charts
-                    content2_24hrs += "<canvas id='chartjs-2_24hrs' class='chartjs'></canvas>";
+                    content2_24hrs += "<canvas id='chartjs-2_24hrs' class='chartjs' style='height:55vh; width:40vw; display: flex;'></canvas>";
                     content2_24hrs += "<script>new Chart(document.getElementById('chartjs-2_24hrs')," + JSON.stringify(chartobj2_24hrs) + ");</script>";
     
                     let chartobj2_7d = {
@@ -925,7 +969,7 @@ router.get('/dash_financial', function(req, res, next) {
                         }
                     };
                     // Create charts
-                    content2_7d += "<canvas id='chartjs-2-7d' class='chartjs'></canvas>";
+                    content2_7d += "<canvas id='chartjs-2-7d' class='chartjs' style='height:55vh; width:40vw; display: flex;'></canvas>";
                     content2_7d += "<script>new Chart(document.getElementById('chartjs-2-7d')," + JSON.stringify(chartobj2_7d) + ");</script>";
     
                     let chartobj2_30d = {
@@ -945,7 +989,7 @@ router.get('/dash_financial', function(req, res, next) {
                         }
                     };
                     // Create charts
-                    content2_30d += "<canvas id='chartjs-2-30d' class='chartjs'></canvas>";
+                    content2_30d += "<canvas id='chartjs-2-30d' class='chartjs' style='height:55vh; width:40vw; display: flex;'></canvas>";
                     content2_30d += "<script>new Chart(document.getElementById('chartjs-2-30d')," + JSON.stringify(chartobj2_30d) + ");</script>";
     
                     inforows[0].coin_1_quote = Math.trunc(inforows[0].coin_1_quote * 10000) / 10000;
@@ -977,6 +1021,7 @@ router.get('/dash_financial', function(req, res, next) {
                     data.date=dateParts+ " GMT ";
                     
                     res.render('dash_financial', {
+                        version: version,
                         title: 'ETHO | Financial dashboard',
                         data: data,
                         db: inforows[0],
@@ -988,6 +1033,7 @@ router.get('/dash_financial', function(req, res, next) {
                 }
                 else {
                     res.render('index', {
+                        version: version,
                         title: 'ETHO | Financial dashboard'
                     });
                     
@@ -1018,6 +1064,7 @@ router.get('/dash_financial2', async function(req, res, next) {
             data.date = dateParts + " GMT ";
     
             res.render('dash_financial2', {
+                version: version,
                 title: 'ETHO | Financial 2 dashboard',
                 data: data
             });
@@ -1036,7 +1083,7 @@ router.get('/dash_cmctrending', function(req, res, next) {
         data.blockheight = MISC_numberFormating(bd.block_height);
         data.circulatingsupply = MISC_numberFormating(bd.circulating_supply);
         
-        let vsql="SELECT * FROM info ORDER BY id DESC LIMIT 25";
+        let vsql="SELECT * FROM info ORDER BY id DESC LIMIT 5040";
         
         pool.query(vsql)
             .then((inforows) => {
@@ -1056,7 +1103,7 @@ router.get('/dash_cmctrending', function(req, res, next) {
                         type: 'bar',
                         data: {
                             labels:
-                                ['Now','-1hr','-2hr','-3hr','-4hr','-5hr','-6hr','-7hr','-8hr','-9hr','-10hr','-11hr','-12hr','-13hr','-14hr','-15hr','-16hr','-17hr','-18hr','-19hr','-20hr','-21hr','-22hr1','-23hr'],
+                                ['Now','-1hr','-2hr','-3hr','-4hr','-5hr','-6hr','-7hr','-8hr','-9hr','-10hr','-11hr','-12hr','-13hr','-14hr','-15hr','-16hr','-17hr','-18hr','-19hr','-20hr','-21hr','-22hr','-23hr'],
                             datasets:
                                 [{'label':'24hrs CMC watchlist, increase from: ' + inforows[23].etho_watchlist,
                                     data: watchlist,
@@ -1088,7 +1135,7 @@ router.get('/dash_cmctrending', function(req, res, next) {
                         type: 'bar',
                         data: {
                             labels:
-                                ['Now','-1hr','-2hr','-3hr','-4hr','-5hr','-6hr','-7hr','-8hr','-9hr','-10hr','-11hr','-12hr','-13hr','-14hr','-15hr','-16hr','-17hr','-18hr','-19hr','-20hr','-21hr','-22hr1','-23hr'],
+                                ['Now','-1hr','-2hr','-3hr','-4hr','-5hr','-6hr','-7hr','-8hr','-9hr','-10hr','-11hr','-12hr','-13hr','-14hr','-15hr','-16hr','-17hr','-18hr','-19hr','-20hr','-21hr','-22hr','-23hr'],
                             datasets:
                                 [{'label':'CMC top 20 trending position',
                                     data: trend,
@@ -1113,8 +1160,290 @@ router.get('/dash_cmctrending', function(req, res, next) {
                     content2 += "<canvas id='chartjs-5' class='chartjs' width='1540' height='770' style='display: block; height: 385px; width: 770px;'></canvas>";
                     content2 += "" +
                         "<script>new Chart(document.getElementById('chartjs-5')," + JSON.stringify(chartobj) + ");</script>";
+    
+                    // Generate line chart
+                    let cmcrank = [];
+                    for (i=0;i<24;i++) {
+                        if (inforows[i].etho_trending==null)
+                            inforows[i].etho_trending=0;
+                        cmcrank[i]=inforows[i].coin_1_rank;
+                    }
+    
+                    chartobj = {
+                        type: 'line',
+                        data: {
+                            labels:
+                                ['Now','-1hr','-2hr','-3hr','-4hr','-5hr','-6hr','-7hr','-8hr','-9hr','-10hr','-11hr','-12hr','-13hr','-14hr','-15hr','-16hr','-17hr','-18hr','-19hr','-20hr','-21hr','-22hr','-23hr'],
+                            datasets:
+                                [{'label':'CMC ETHO position',
+                                    data: cmcrank,
+                                    backgroundColor: 'rgb(0,0,0)'
                     
+                                }]
+            
+                        },
+                        options: {
+                            responsive: true,
+                            }
+                    };
+                    // Create charts
+                    let content3_24hrs = "";
+                    content3_24hrs += "<canvas id='chartjs-6_24hrs' class='chartjs' width='1540' height='770' style='display: block; height: 385px; width: 770px;'></canvas>";
+                    content3_24hrs += "" +
+                        "<script>new Chart(document.getElementById('chartjs-6_24hrs')," + JSON.stringify(chartobj) + ");</script>";
+    
+                    let cmcrank_7d=[];
+                    let cmcrank_30d=[];
+                    let labels_7d=[];
+                    let labels_30d=[];
                     
+                    for (i = 0; i < 168; i++) {
+                        cmcrank_7d[i] = inforows[i].coin_1_rank;
+                        labels_7d.push(-i + " hr");
+                    }
+                    chartobj = {
+                        type: 'line',
+                        data: {
+                            labels: labels_7d,
+                            datasets:
+                                [{'label':'CMC ETHO position',
+                                    data: cmcrank_7d,
+                                    backgroundColor: 'rgb(0,0,0)'
+                    
+                                }]
+            
+                        },
+                        options: {
+                            responsive: true,
+                        }
+                    };
+                    // Create charts
+                    let content3_7d = "";
+                    content3_7d += "<canvas id='chartjs-6_7d' class='chartjs' width='1540' height='770' style='display: block; height: 385px; width: 770px;'></canvas>";
+                    content3_7d += "" +
+                        "<script>new Chart(document.getElementById('chartjs-6_7d')," + JSON.stringify(chartobj) + ");</script>";
+    
+    
+                    for (i = 0; i < inforows.length; i++) {
+                        cmcrank_30d[i] = inforows[i].coin_1_rank;
+                        labels_30d.push(-i + " hr");
+                    }
+                    chartobj = {
+                        type: 'line',
+                        data: {
+                            labels: labels_30d,
+                            datasets:
+                                [{'label':'CMC ETHO position',
+                                    data: cmcrank_30d,
+                                    backgroundColor: 'rgb(0,0,0)'
+                    
+                                }]
+            
+                        },
+                        options: {
+                            responsive: true,
+                        }
+                    };
+                    // Create charts
+                    let content3_30d = "";
+                    content3_30d += "<canvas id='chartjs-6_30d' class='chartjs' width='1540' height='770' style='display: block; height: 385px; width: 770px;'></canvas>";
+                    content3_30d += "" +
+                        "<script>new Chart(document.getElementById('chartjs-6_30d')," + JSON.stringify(chartobj) + ");</script>";
+    
+    
+    
+                    // Generate line chart
+                    let cmc_etho_rank_24hrs = [];
+                    for (i=0;i<24;i++) {
+                        if (inforows[i].etho_trending==null)
+                            inforows[i].etho_trending=0;
+                        cmc_etho_rank_24hrs[i]=inforows[i].coin_1_rank;
+                    }
+    
+                    let cmc_fil_rank_24hrs = [];
+                    for (i=0;i<24;i++) {
+                        if (inforows[i].etho_trending==null)
+                            inforows[i].etho_trending=0;
+                        cmc_fil_rank_24hrs[i]=inforows[i].coin_2_rank;
+                    }
+    
+                    let cmc_sia_rank_24hrs = [];
+                    for (i=0;i<24;i++) {
+                        if (inforows[i].etho_trending==null)
+                            inforows[i].etho_trending=0;
+                        cmc_sia_rank_24hrs[i]=inforows[i].coin_3_rank;
+                    }
+    
+                    let cmc_storj_rank_24hrs = [];
+                    for (i=0;i<24;i++) {
+                        if (inforows[i].etho_trending==null)
+                            inforows[i].etho_trending=0;
+                        cmc_storj_rank_24hrs[i]=inforows[i].coin_4_rank;
+                    }
+    
+                    chartobj = {
+                        type: 'line',
+                        data: {
+                            labels:
+                                ['Now','-1hr','-2hr','-3hr','-4hr','-5hr','-6hr','-7hr','-8hr','-9hr','-10hr','-11hr','-12hr','-13hr','-14hr','-15hr','-16hr','-17hr','-18hr','-19hr','-20hr','-21hr','-22hr','-23hr'],
+                            datasets:
+                                [{
+                                    'label': 'ETHO ranking',
+                                    data: cmc_etho_rank_24hrs,
+                                    backgroundColor: 'rgb(2,2,2)'
+                                },{
+                                    'label': 'Filecoin ranking',
+                                    data: cmc_fil_rank_24hrs,
+                                    backgroundColor: 'rgb(239,239,12)'
+                                },{
+                                    'label': 'Sia coin',
+                                    data: cmc_sia_rank_24hrs,
+                                    backgroundColor: 'rgb(66,241,5)'
+                                },{
+                                    'label': 'STORJ coin',
+                                    data: cmc_storj_rank_24hrs,
+                                    backgroundColor: 'rgb(236,13,13)'
+                                }]
+            
+                        },
+                        options: {
+                            responsive: true,
+                        }
+                    };
+                    // Create charts
+                    let content4_24hrs = "";
+                    content4_24hrs += "<canvas id='chartjs-7_24hrs' class='chartjs' width='1540' height='770' style='display: block; height: 385px; width: 770px;'></canvas>";
+                    content4_24hrs += "" +
+                        "<script>new Chart(document.getElementById('chartjs-7_24hrs')," + JSON.stringify(chartobj) + ");</script>";
+    
+                    // Generate line chart
+                    let cmc_etho_rank_7d = [];
+    
+                    for (i=0;i<168;i++) {
+                        if (inforows[i].etho_trending==null)
+                            inforows[i].etho_trending=0;
+                        cmc_etho_rank_7d[i]=inforows[i].coin_1_rank;
+                    }
+    
+                    let cmc_fil_rank_7d = [];
+                    for (i=0;i<168;i++) {
+                        if (inforows[i].etho_trending==null)
+                            inforows[i].etho_trending=0;
+                        cmc_fil_rank_7d[i]=inforows[i].coin_2_rank;
+                    }
+    
+                    let cmc_sia_rank_7d = [];
+                    for (i=0;i<168;i++) {
+                        if (inforows[i].etho_trending==null)
+                            inforows[i].etho_trending=0;
+                        cmc_sia_rank_7d[i]=inforows[i].coin_3_rank;
+                    }
+    
+                    let cmc_storj_rank_7d = [];
+                    for (i=0;i<168;i++) {
+                        if (inforows[i].etho_trending==null)
+                            inforows[i].etho_trending=0;
+                        cmc_storj_rank_7d[i]=inforows[i].coin_4_rank;
+                    }
+    
+                    chartobj = {
+                        type: 'line',
+                        data: {
+                            labels: labels_7d,
+                            datasets:
+                                [{
+                                    'label': 'ETHO ranking',
+                                    data: cmc_etho_rank_7d,
+                                    backgroundColor: 'rgb(2,2,2)'
+                                },{
+                                    'label': 'Filecoin ranking',
+                                    data: cmc_fil_rank_7d,
+                                    backgroundColor: 'rgb(239,239,12)'
+                                },{
+                                    'label': 'Sia coin',
+                                    data: cmc_sia_rank_7d,
+                                    backgroundColor: 'rgb(66,241,5)'
+                                },{
+                                    'label': 'STORJ coin',
+                                    data: cmc_storj_rank_7d,
+                                    backgroundColor: 'rgb(236,13,13)'
+                                }]
+            
+                        },
+                        options: {
+                            responsive: true,
+                        }
+                    };
+                    // Create charts
+                    let content4_7d = "";
+                    content4_7d += "<canvas id='chartjs-7_7d' class='chartjs' width='1540' height='770' style='display: block; height: 385px; width: 770px;'></canvas>";
+                    content4_7d += "" +
+                        "<script>new Chart(document.getElementById('chartjs-7_7d')," + JSON.stringify(chartobj) + ");</script>";
+    
+                    // Generate line chart
+                    let cmc_etho_rank_30d = [];
+    
+                    for (i=0;i<inforows.length;i++) {
+                        if (inforows[i].etho_trending==null)
+                            inforows[i].etho_trending=0;
+                        cmc_etho_rank_30d[i]=inforows[i].coin_1_rank;
+                    }
+    
+                    let cmc_fil_rank_30d = [];
+                    for (i=0;i<inforows.length;i++) {
+                        if (inforows[i].etho_trending==null)
+                            inforows[i].etho_trending=0;
+                        cmc_fil_rank_30d[i]=inforows[i].coin_2_rank;
+                    }
+    
+                    let cmc_sia_rank_30d = [];
+                    for (i=0;i<inforows.length;i++) {
+                        if (inforows[i].etho_trending==null)
+                            inforows[i].etho_trending=0;
+                        cmc_sia_rank_30d[i]=inforows[i].coin_3_rank;
+                    }
+    
+                    let cmc_storj_rank_30d = [];
+                    for (i=0;i<inforows.length;i++) {
+                        if (inforows[i].etho_trending==null)
+                            inforows[i].etho_trending=0;
+                        cmc_storj_rank_30d[i]=inforows[i].coin_4_rank;
+                    }
+    
+                    chartobj = {
+                        type: 'line',
+                        data: {
+                            labels: labels_30d,
+                            datasets:
+                                [{
+                                    'label': 'ETHO ranking',
+                                    data: cmc_etho_rank_30d,
+                                    backgroundColor: 'rgb(2,2,2)'
+                                },{
+                                    'label': 'Filecoin ranking',
+                                    data: cmc_fil_rank_30d,
+                                    backgroundColor: 'rgb(239,239,12)'
+                                },{
+                                    'label': 'Sia coin',
+                                    data: cmc_sia_rank_30d,
+                                    backgroundColor: 'rgb(66,241,5)'
+                                },{
+                                    'label': 'STORJ coin',
+                                    data: cmc_storj_rank_30d,
+                                    backgroundColor: 'rgb(236,13,13)'
+                                }]
+            
+                        },
+                        options: {
+                            responsive: true,
+                        }
+                    };
+                    // Create charts
+                    let content4_30d = "";
+                    content4_30d += "<canvas id='chartjs-7_30d' class='chartjs' width='1540' height='770' style='display: block; height: 385px; width: 770px;'></canvas>";
+                    content4_30d += "" +
+                        "<script>new Chart(document.getElementById('chartjs-7_30d')," + JSON.stringify(chartobj) + ");</script>";
+    
                     inforows[0].coin_1_quote = Math.trunc(inforows[0].coin_1_quote * 10000) / 10000;
                     inforows[0].coin_2_quote = Math.trunc(inforows[0].coin_2_quote * 10000) / 10000;
                     inforows[0].coin_3_quote = Math.trunc(inforows[0].coin_3_quote * 10000) / 10000;
@@ -1136,16 +1465,25 @@ router.get('/dash_cmctrending', function(req, res, next) {
                     data.date=dateParts+ " GMT ";
     
                     res.render('dash_cmctrending', {
+                        version: version,
                         title: 'ETHO | ETHO trending',
                         data: data,
                         db: inforows[0],
                         chart1: content1,
-                        chart2: content2
+                        chart2: content2,
+                        chart3_24hrs: content3_24hrs,
+                        chart3_7d: content3_7d,
+                        chart3_30d: content3_30d,
+                        chart4_24hrs: content4_24hrs,
+                        chart4_7d: content4_7d,
+                        chart4_30d: content4_30d
+    
                     });
                 }
                 else {
                     res.render('index', {
-                        title: 'ETHO | Financial dashboard'
+                        version: version,
+                        title: 'ETHO | ETHO trending'
                     });
                     
                 }
@@ -1360,6 +1698,7 @@ router.get('/dash_nodes', function(req, res, next) {
     
     
                 res.render('dash_nodes', {
+                    version: version,
                     title: 'ETHO | Financial dashboard',
                     ethofsstats: stats,
                     data: data,
@@ -1379,7 +1718,10 @@ router.get('/dash_nodes', function(req, res, next) {
     
 });
 
-
+// Support functions
+function getExchanges(data) {
+    return(data.etho_exchange_kucoin+data.etho_exchange_stex+data.etho_exchange_graviex+data.etho_exchange_probit+data.etho_exchange_mercatox);
+}
 
 
 module.exports = router;
