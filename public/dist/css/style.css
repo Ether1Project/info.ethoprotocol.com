@@ -210,7 +210,7 @@ b{
 	display: inherit;
 }
 .main-header .navbar.blue-bg {
-	background: #5867dd;
+	background: #8a2744;
 }
 .layout-top-nav .main-header .navbar {
 	margin-left: 0
@@ -431,7 +431,7 @@ color:#ccc
 	display: none
 }
 .main-header .logo.blue-bg {
-	background: #5867dd;
+	background: #8a2744;
 }
 .main-header .navbar-brand {
 	color: #fff
@@ -456,8 +456,8 @@ color:#ccc
 	font-size: 12px;
 }
 .main-header .search-form input.form-control {
-	background: #6876e8;
-	border: 1px solid #6876e8;
+	background: #8a2744;
+	border: 1px solid #8a2744;
 	color: #fff;
 	font-family: 'Poppins', sans-serif;
 }
@@ -477,8 +477,8 @@ color:#ccc
 	border-width: 1px 1px 1px 0;
 }
 .main-header .search-form button.btn {
-	background: #6876e8;
-	border: 1px solid #6876e8;
+	background: #8a2744;
+	border: 1px solid #8a2744;
 	color: #fff;
 	cursor: pointer;
 }
@@ -519,7 +519,7 @@ color:#ccc
 	color: #999;
 }
 .content-header>.breadcrumb>li>a {
-	color: #5867dd;
+	color: #8a2744;
 	text-decoration: none;
 	display: inline-block
 }
@@ -584,15 +584,15 @@ ul.fa-ul{
 }
 .tab-style1 ul li a:hover, .customtab li a.nav-link:hover{
 	background-color: transparent;
-	color: #5867dd;
+	color: #8a2744;
 }
 .tab-style1 ul.nav-tabs .nav-item.show .nav-link, .tab-style1 ul.nav-tabs .nav-link.active, .tab-style1 ul.nav-tabs .nav-link {
 	border: 0;
 }
 .tab-style1 ul.nav-tabs li a.active, .customtab li a.nav-link.active{
 	background-color: transparent;
-	color: #5867dd;
-	border-bottom: solid 1px #5867dd !important;
+	color: #8a2744;
+	border-bottom: solid 1px #8a2744 !important;
 }
 .bd-example-row .row > .col, .bd-example-row .row > [class^="col-"] {
     padding-top: .75rem;
@@ -612,7 +612,7 @@ ul.fa-ul{
 	padding-right: 10px;
 }
 .like-comm a:hover {
-	color: #5867dd;
+	color: #8a2744;
 }
 .soci-wid-box {
 	padding: 30px 10px 20px;
@@ -860,7 +860,7 @@ ul.fa-ul{
 	color: #cccccc;
 }
 .sidebar-menu > li.active > a {
-	border-left: solid 3px #5867dd;
+	border-left: solid 3px #8a2744;
 }
 .sidebar-menu > li:hover > a, .sidebar-menu > li.active > a, .sidebar-menu > li.menu-open > a {
 	background: #29313b;
@@ -3893,7 +3893,7 @@ table.text-center, table.text-center td, table.text-center th {
 	color: #80878f;
 }
 .treeview-menu>li>a:hover, .treeview-menu>li.active a {
-	color: #008cd3;
+	color: #f8e0e0;
 }
 .treeview-menu>li>a>.fa, .treeview-menu>li>a>.glyphicon, .treeview-menu>li>a>.ion {
 	width: 20px

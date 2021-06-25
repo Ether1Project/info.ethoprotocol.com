@@ -1,0 +1,82 @@
+extends layout
+
+block content
+
+    // Content Header (Page header)
+    .content-header.sty-one
+        h1 Dashboard - ETHO social
+        a.twitter-share-button(href='https://twitter.com/intent/tweet?text=Great%20info%20about%20ETHO%20protocol.%20Check%20out%20this%20page.')
+            | Tweet ths page
+
+        ol.breadcrumb
+            li
+                a(href='#') Home
+            li
+                i.fa.fa-angle-right
+                | Dashboard - ETHO social
+    // Main content
+    .content
+        // Small boxes (Stat box)
+        .row
+            .col-lg-3.col-sm-6.col-xs-12
+                .info-box.bg-black
+                    span.info-box-icon.bg-transparent
+                        i.ti-layout-grid3-alt.text-white
+                    .info-box-content
+                        h6.info-box-text.text-white Discord member count
+                        h1.text-white= data.socialDiscord_members
+                        span.progress-description.text-white Members
+                    // /.info-box-content
+                // /.info-box
+            // /.col
+
+        // Main row
+        script(src="/dist/js/chart.js")
+        .row
+            .col-md-6.d-flex
+                .card.w-100
+                    .card-body
+                        h4.card-title.text-black Discord member count
+                        h6.card-subtitle.m-b-2 Select the time span via tabs
+                        // Nav tabs
+                        ul.nav.nav-tabs(role='tablist')
+                            li.nav-item
+                                a.nav-link.active(data-toggle='tab' href='#tab1' role='tab')
+                                    span.hidden-sm-up
+                                        i.ti-layout-grid2-alt
+                                    span.hidden-xs-down 24hr view
+                            li.nav-item
+                                a.nav-link(data-toggle='tab' href='#tab2' role='tab')
+                                    span.hidden-sm-up
+                                        i.ti-layout-grid3-alt
+                                    span.hidden-xs-down 7 day view
+                            li.nav-item
+                                a.nav-link(data-toggle='tab' href='#tab3' role='tab')
+                                    span.hidden-sm-up
+                                        i.ti-layout-grid4-alt
+                                    span.hidden-xs-down 30 day view
+                        // Tab panes
+
+                        .tab-content.tabcontent-border
+
+                            #tab1.tab-pane.active(role='tabpanel')
+                                .info-box
+                                    .m-t-2
+                                        p !{chart1_24hrs}
+
+                            #tab2.tab-pane.p-20(role='tabpanel')
+                                .info-box
+                                    .m-t-2
+                                        p !{chart1_7d}
+
+                            #tab3.tab-pane.p-20(role='tabpanel')
+                                .info-box
+                                    .m-t-2
+                                        p !{chart1_30d}
+
+
+
+
+
+
+    // /.content

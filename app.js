@@ -48,7 +48,7 @@ global.email = new Email({
 
 // Define the globals
 global.debugon=true;
-global.version="1.11";
+global.version="1.12";
 
 
 // Init database
@@ -106,10 +106,7 @@ require('./config/passport')(passport);
 app.use(passport.initialize());
 app.use(passport.session());
 
-app.get('*', function(req, res, next){
-    res.locals.user = req.user || null;
-    next();
-});
+
 
 app.use( (req, res, done) => {
 //  logger.info("#server.app: URL: %s", req.originalUrl);
@@ -143,6 +140,12 @@ app.use(function(err, req, res, next) {
         title: ""
     });
     
+});
+
+
+app.get('*', function(req, res, next){
+    res.locals.user = req.user || null;
+    next();
 });
 
 email
@@ -221,6 +224,21 @@ async function update1hrsDatabase() {
     }
 */
     
+    let discordMembers=0;
+    await got('http://95.111.230.192:8080/rest/guild')
+        .then((res) => {
+            let result = JSON.parse(res.body);
+            for (i=0;i< result.guild.length; i++) {
+                if (result.guild[i].guildId=='426241424229662721') {
+                    discordMembers=result.guild[i].guildMember;
+                    break;
+                }
+            }
+            logger.info('#server.app.update1hrsDatabase: Discord members %s', discordMembers);
+        });
+    
+    
+    
     let wETHO;
     await got('https://api.ethplorer.io/getTokenInfo/0x99676c9fa4c77848aeb2383fcfbd7e980dc25027?apiKey='+config.ETHPLORERKEY)
         .then((res) => {
@@ -234,8 +252,8 @@ async function update1hrsDatabase() {
         .then((res) => {
             wETHO_holder = JSON.parse(res.body);
             for (i=0; i<wETHO_holder.holders.length;i++) {
-                if (wETHO_holder.holders[i].address=="0xa1d8d972560c2f8144af871db508f0b0b10a3fbf") {
-                    exchange_kucoin=wETHO_holder.holders[i].balance/1E18;
+                if (wETHO_holder.holders[i].address=="0xa1d8d972560c2f8144af871db508f0b0b10a3fbf" || wETHO_holder.holders[i].address=="0x495f8bdacfbe7347131b7f8fd240d903daa2cc44") {
+                    exchange_kucoin+=wETHO_holder.holders[i].balance/1E18;
                 }
             }
         });
@@ -313,7 +331,7 @@ async function update1hrsDatabase() {
                             .then((res) => {
                                 let bd = JSON.parse(res.body);
                                 exchange_mercatox = parseInt(bd.result / 1E18);
-                                logger.info("Graviex: %s ETHO", exchange_mercatox); // Print the json response
+                                logger.info("Mecatox: %s ETHO", exchange_mercatox); // Print the json response
                             })
                             .catch((error) => {
                                 logger.info("#server.app.udate1hrsDatabase: %s", error);
@@ -402,7 +420,8 @@ async function update1hrsDatabase() {
                                                 "etho_exchange_kucoin, etho_exchange_stex, etho_exchange_graviex, etho_exchange_mercatox, etho_exchange_probit, etho_devfund, " +
                                                 "etho_richlist, " +
                                                 "etho_gatewaynode_reward, etho_masternode_reward, etho_servicenode_reward, " +
-                                                "wetho_totalSupply, wetho_tranfersCount, wetho_holdersCount, date) VALUES ("
+                                                "wetho_totalSupply, wetho_tranfersCount, wetho_holdersCount, " +
+                                                "socialDiscord_members, date) VALUES ("
                                                 + jsonarr.data.ETHO.id + ",'" + jsonarr.data.ETHO.name + "','" + jsonarr.data.ETHO.symbol + "', " + jsonarr.data.ETHO.cmc_rank + ", " + jsonarr.data.ETHO.num_market_pairs + ", " + jsonarr.data.ETHO.circulating_supply + ", " + jsonarr.data.ETHO.quote.USD.price + ", " + Math.round(jsonarr.data.ETHO.quote.USD.percent_change_24h * 100) + ", " + Math.round(jsonarr.data.ETHO.quote.USD.percent_change_7d * 100) + ", " + Math.round(jsonarr.data.ETHO.quote.USD.percent_change_30d * 100) + ", " +
                                                 +jsonarr.data.FIL.id + ",'" + jsonarr.data.FIL.name + "','" + jsonarr.data.FIL.symbol + "', " + jsonarr.data.FIL.cmc_rank + ", " + jsonarr.data.FIL.num_market_pairs + ", " + jsonarr.data.FIL.circulating_supply + ", " + jsonarr.data.FIL.quote.USD.price + "," + Math.round(jsonarr.data.FIL.quote.USD.percent_change_24h * 100) + ", " + Math.round(jsonarr.data.FIL.quote.USD.percent_change_7d * 100) + ", " + Math.round(jsonarr.data.FIL.quote.USD.percent_change_30d * 100) + ", " +
                                                 +jsonarr.data.SC.id + ",'" + jsonarr.data.SC.name + "','" + jsonarr.data.SC.symbol + "', " + jsonarr.data.SC.cmc_rank + ", " + jsonarr.data.SC.num_market_pairs + ", " + jsonarr.data.SC.circulating_supply + ", " + jsonarr.data.SC.quote.USD.price + "," + Math.round(jsonarr.data.SC.quote.USD.percent_change_24h * 100) + ", " + Math.round(jsonarr.data.SC.quote.USD.percent_change_7d * 100) + ", " + Math.round(jsonarr.data.SC.quote.USD.percent_change_30d * 100) + ", " +
@@ -410,7 +429,8 @@ async function update1hrsDatabase() {
                                                 pos + "," + etho_watchlist + "," + stats.activeUploadContracts + "," + stats.totalNetworkStorageUsed + "," + stats.networkStorageAvailable + "," +
                                                 stats.active_gatewaynodes + "," + stats.active_masternodes + "," + stats.active_servicenodes + "," + hashrate + "," + difficulty + "," +
                                                 exchange_kucoin + "," + exchange_stex + "," + exchange_graviex + "," + exchange_mercatox + "," + exchange_probit + "," + etho_devfund + ",'" + JSON.stringify(etho_richlist) + "'," +Math.round(stats.gatewaynode_reward*10) + "," + Math.round(stats.masternode_reward*10) + "," + Math.round(stats.servicenode_reward*10) + ",'" +
-                                                wETHO.totalSupply + "'," + wETHO.transfersCount + "," + wETHO.holdersCount + ",'" + pool.mysqlNow() + "')";
+                                                wETHO.totalSupply + "'," + wETHO.transfersCount + "," + wETHO.holdersCount + "," +
+                                                discordMembers + ",'" + pool.mysqlNow() + "')";
                                         
                                         
                                             await pool.query(sql)

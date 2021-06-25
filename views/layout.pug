@@ -57,6 +57,31 @@ head
                 i.fa.fa-search
         // search form
       .navbar-custom-menu
+        .navbar-custom-menu
+          ul.nav.navbar-nav
+            // Messages: style can be found in dropdown.less
+            li.dropdown.messages-menu
+              a.dropdown-toggle(href='#' data-toggle='dropdown')
+                i.fa.fa-envelope-o
+                .notify
+                  span.heartbit
+                  span.point
+              ul.dropdown-menu
+                li.header Latest SW releases
+                li
+                  ul.menu
+                    li
+                      a(href='#')
+                        .pull-left
+                        h3 V1.11
+                        ul
+                          li.text-sm Any page can now be shared by Twitter button
+                          li.text-sm New start page with what is new
+                          li.text-sm Changed label from Remain to Hodl
+                          li.text-sm Removed wETHO account from richlist
+                          li.text-sm Added Kucoin
+
+
   // Left side column. contains the logo and sidebar
   aside.main-sidebar
     // sidebar: style can be found in sidebar.less
@@ -88,6 +113,8 @@ head
               a(href='/dash_richlist') ETHO richlist
             li
               a(href='/dash_ipfs') ETHO IPFS
+            li
+              a(href='/dash_social') ETHO social
             li
               a(href='/dash_financial2') ETHO If i had ...
 

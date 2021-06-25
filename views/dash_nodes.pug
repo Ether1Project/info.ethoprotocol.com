@@ -8,12 +8,16 @@ block content
         a.twitter-share-button(href='https://twitter.com/intent/tweet?text=Great%20info%20about%20ETHO%20protocol.%20Check%20out%20this%20page.')
             | Tweet ths page
 
+
+
         ol.breadcrumb
             li
                 a(href='#') Home
             li
                 i.fa.fa-angle-right
                 | Dashboard - Nodes
+
+
     // Main content
     .content
         // Small boxes (Stat box)
@@ -75,6 +79,176 @@ block content
             .col-lg-6.col-xlg-9.d-flex
                 .card.w-100
                     .card-body
+                        h4.card-title.text-black Change of gateway nodes
+                        h6.card-subtitle.m-b-2 Select the time span via tabs
+                        // Nav tabs
+                        ul.nav.nav-tabs(role='tablist')
+                            li.nav-item
+                                a.nav-link.active(data-toggle='tab' href='#tab1_1' role='tab')
+                                    span.hidden-sm-up
+                                        i.ti-layout-grid2-alt
+                                    span.hidden-xs-down 24hr view
+                            li.nav-item
+                                a.nav-link(data-toggle='tab' href='#tab1_2' role='tab')
+                                    span.hidden-sm-up
+                                        i.ti-layout-grid3-alt
+                                    span.hidden-xs-down 7 day view
+                            li.nav-item
+                                a.nav-link(data-toggle='tab' href='#tab1_3' role='tab')
+                                    span.hidden-sm-up
+                                        i.ti-layout-grid4-alt
+                                    span.hidden-xs-down 30 day view
+
+                        // Tab panes
+
+                        .tab-content.tabcontent-border
+
+                            #tab1_1.tab-pane.active(role='tabpanel')
+                                .info-box
+                                    .m-t-2
+                                        p !{chart1_1_24hrs}
+
+                            #tab1_2.tab-pane.p-20(role='tabpanel')
+                                .info-box
+                                    .m-t-2
+                                        p !{chart1_1_7d}
+
+                            #tab1_3.tab-pane.p-20(role='tabpanel')
+                                .info-box
+                                    .m-t-2
+                                        p !{chart1_1_30d}
+
+            .col-lg-6.col-xlg-9.d-flex
+                .card.w-100
+                    .card-body
+                        h4.card-title.text-black Change of master nodes
+                        h6.card-subtitle.m-b-2 Select the time span via tabs
+                        // Nav tabs
+                        ul.nav.nav-tabs(role='tablist')
+                            li.nav-item
+                                a.nav-link.active(data-toggle='tab' href='#tab2_1' role='tab')
+                                    span.hidden-sm-up
+                                        i.ti-layout-grid2-alt
+                                    span.hidden-xs-down 24hr view
+                            li.nav-item
+                                a.nav-link(data-toggle='tab' href='#tab2_2' role='tab')
+                                    span.hidden-sm-up
+                                        i.ti-layout-grid3-alt
+                                    span.hidden-xs-down 7 day view
+                            li.nav-item
+                                a.nav-link(data-toggle='tab' href='#tab2_3' role='tab')
+                                    span.hidden-sm-up
+                                        i.ti-layout-grid4-alt
+                                    span.hidden-xs-down 30 day view
+
+                        // Tab panes
+
+                        .tab-content.tabcontent-border
+
+                            #tab2_1.tab-pane.active(role='tabpanel')
+                                .info-box
+                                    .m-t-2
+                                        p !{chart1_2_24hrs}
+
+                            #tab2_2.tab-pane.p-20(role='tabpanel')
+                                .info-box
+                                    .m-t-2
+                                        p !{chart1_2_7d}
+
+                            #tab2_3.tab-pane.p-20(role='tabpanel')
+                                .info-box
+                                    .m-t-2
+                                        p !{chart1_2_30d}
+
+        .row
+            .col-lg-6.col-xlg-9.d-flex
+                .card.w-100
+                    .card-body
+                        h4.card-title.text-black Change of service nodes
+                        h6.card-subtitle.m-b-2 Select the time span via tabs
+                        // Nav tabs
+                        ul.nav.nav-tabs(role='tablist')
+                            li.nav-item
+                                a.nav-link.active(data-toggle='tab' href='#tab3_1' role='tab')
+                                    span.hidden-sm-up
+                                        i.ti-layout-grid2-alt
+                                    span.hidden-xs-down 24hr view
+                            li.nav-item
+                                a.nav-link(data-toggle='tab' href='#tab3_2' role='tab')
+                                    span.hidden-sm-up
+                                        i.ti-layout-grid3-alt
+                                    span.hidden-xs-down 7 day view
+                            li.nav-item
+                                a.nav-link(data-toggle='tab' href='#tab3_3' role='tab')
+                                    span.hidden-sm-up
+                                        i.ti-layout-grid4-alt
+                                    span.hidden-xs-down 30 day view
+
+                        // Tab panes
+
+                        .tab-content.tabcontent-border
+
+                            #tab3_1.tab-pane.active(role='tabpanel')
+                                .info-box
+                                    .m-t-2
+                                        p !{chart1_3_24hrs}
+
+                            #tab3_2.tab-pane.p-20(role='tabpanel')
+                                .info-box
+                                    .m-t-2
+                                        p !{chart1_3_7d}
+
+                            #tab3_3.tab-pane.p-20(role='tabpanel')
+                                .info-box
+                                    .m-t-2
+                                        p !{chart1_3_30d}
+
+            .col-lg-6.col-xlg-9.d-flex
+                .card.w-100
+                    .card-body
+                        h4.card-title.text-black ETHO locked in nodes
+                        h6.card-subtitle.m-b-2 Select the time span via tabs
+                        // Nav tabs
+                        ul.nav.nav-tabs(role='tablist')
+                            li.nav-item
+                                a.nav-link.active(data-toggle='tab' href='#tab4_1' role='tab')
+                                    span.hidden-sm-up
+                                        i.ti-layout-grid2-alt
+                                    span.hidden-xs-down 24hr view
+                            li.nav-item
+                                a.nav-link(data-toggle='tab' href='#tab4_2' role='tab')
+                                    span.hidden-sm-up
+                                        i.ti-layout-grid3-alt
+                                    span.hidden-xs-down 7 day view
+                            li.nav-item
+                                a.nav-link(data-toggle='tab' href='#tab4_3' role='tab')
+                                    span.hidden-sm-up
+                                        i.ti-layout-grid4-alt
+                                    span.hidden-xs-down 30 day view
+
+                        // Tab panes
+
+                        .tab-content.tabcontent-border
+
+                            #tab4_1.tab-pane.active(role='tabpanel')
+                                .info-box
+                                    .m-t-2
+                                        p !{chart1_4_24hrs}
+
+                            #tab4_2.tab-pane.p-20(role='tabpanel')
+                                .info-box
+                                    .m-t-2
+                                        p !{chart1_4_7d}
+
+                            #tab4_3.tab-pane.p-20(role='tabpanel')
+                                .info-box
+                                    .m-t-2
+                                        p !{chart1_4_30d}
+
+        .row
+            .col-lg-6.col-xlg-9.d-flex
+                .card.w-100
+                    .card-body
                         h4.card-title.text-black ETHO active contracts
                         h6.card-subtitle.m-b-2 Select the time span via tabs
                         // Nav tabs
@@ -102,17 +276,17 @@ block content
                             #tab1.tab-pane.active(role='tabpanel')
                                 .info-box
                                     .m-t-2
-                                        p !{chart1_24hrs}
+                                        p !{chart3_24hrs}
 
                             #tab2.tab-pane.p-20(role='tabpanel')
                                 .info-box
                                     .m-t-2
-                                        p !{chart1_7d}
+                                        p !{chart3_7d}
 
                             #tab3.tab-pane.p-20(role='tabpanel')
                                 .info-box
                                     .m-t-2
-                                        p !{chart1_30d}
+                                        p !{chart3_30d}
 
             .col-lg-6.col-xlg-9
                 .info-box
@@ -120,7 +294,7 @@ block content
                         div
                             h4.text-black Node distribution
                     .m-t-2
-                        p !{chart2}
+                        p !{chart4}
 
         .row
             .col-lg-12.col-xlg-12
@@ -129,7 +303,7 @@ block content
                         div
                             h4.text-black Node reward in ETHO over 30 days
                     .m-t-2
-                        p !{chart3}
+                        p !{chart5}
 
 
     // /.content
