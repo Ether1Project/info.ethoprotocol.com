@@ -44,6 +44,208 @@ router.get('/', function(req, res, next) {
 });
 
 /* GET home page. */
+router.get('/dash_storagecost', async function(req, res, next) {    var currency;    var title;
+    
+    logger.info("#server.routes.index.get.dash_storagecost: size: %s, length: %s",req.query.size, req.query.duration);
+    
+    let length="";
+    let cost=0;
+    
+    if (req.query.size==undefined)
+        req.query.size=1;
+    if (req.query.duration==undefined)
+        req.query.duration=2233107;
+    
+    if (req.query.duration==6646)
+        length+='<option value="6646" selected>1 day</option>';
+    else
+        length+='<option value="6646">1 day</option>';
+    if (req.query.duration==13292)
+        length+='<option value="13292" selected>2 days</option>';
+    else
+        length+='<option value="13292">2 days</option>';
+    if (req.query.duration==19938)
+        length+='<option value="19938" selected>3 days</option>';
+    else
+        length+='<option value="19938">3 days</option>';
+    if (req.query.duration==26548)
+        length+='<option value="26548" selected>4 days</option>';
+    else
+        length+='<option value="26548">4 days</option>';
+    if (req.query.duration==33230)
+        length+='<option value="33230" selected>5 days</option>';
+    else
+        length+='<option value="33230">5 days</option>';
+    if (req.query.duration==39876)
+        length+='<option value="39876" selected>6 days</option>';
+    else
+        length+='<option value="39876">6 days</option>';
+    if (req.query.duration==46523)
+        length+='<option value="46523" selected>7 days</option>';
+    else
+        length+='<option value="46523">7 days</option>';
+    if (req.query.duration==93046)
+        length+='<option value="93046" selected>2 weeks</option>';
+    else
+        length+='<option value="93046">2 weeks</option>';
+    if (req.query.duration==139569)
+        length+='<option value="139569" selected>3 weeks</option>';
+    else
+        length+='<option value="139569">3 weeks</option>';
+    if (req.query.duration==186029)
+        length+='<option value="186029" selected>4 weeks</option>';
+    else
+        length+='<option value="186029">4 weeks</option>';
+    if (req.query.duration==372194)
+        length+='<option value="372194" selected>2 months</option>';
+    else
+        length+='<option value="372194">2 months</option>';
+    if (req.query.duration==558276)
+        length+='<option value="558276" selected>3 months</option>';
+    else
+        length+='<option value="558276">3 months</option>';
+    if (req.query.duration==744369)
+        length+='<option value="744369" selected>4 months</option>';
+    else
+        length+='<option value="744369">4 months</option>';
+    
+    if (req.query.duration==930461)
+        length+='<option value="930461" selected>5 months</option>';
+    else
+        length+='<option value="930461">5 months</option>';
+    
+    if (req.query.duration==1116553)
+        length+='<option value="1116553" selected>6 months</option>';
+    else
+        length+='<option value="1116553">6 months</option>';
+    
+    if (req.query.duration==2233107)
+        length+='<option value="2233107" selected>12 months</option>';
+    else
+        length+='<option value="2233107">12 months</option>';
+    
+    if (req.query.duration==4466215)
+        length+='<option value="4466215" selected>2 years</option>';
+    else
+        length+='<option value="4466215">2 years</option>';
+
+    if (req.query.duration==6699323)
+        length+='<option value="6699323" selected>3 years</option>';
+    else
+        length+='<option value="6699323">3 years</option>';
+    if (req.query.duration==8932430)
+        length+='<option value="8932430" selected>4 years</option>';
+    else
+        length+='<option value="8932430">4 years</option>';
+    
+    if (req.query.duration==11165538)
+        length+='<option value="11165538" selected>5 years</option>';
+    else
+        length+='<option value="11165538">5 years</option>';
+    
+    if (req.query.duration==13398646)
+        length+='<option value="13398646" selected>6 years</option>';
+    else
+        length+='<option value="13398646">6 years</option>';
+    
+    if (req.query.duration==15631753)
+        length+='<option value="15631753" selected>7 years</option>';
+    else
+        length+='<option value="15631753">7 years</option>';
+    
+    if (req.query.duration==17864861)
+        length+='<option value="17864861" selected>8 years</option>';
+    else
+        length+='<option value="17864861">8 years</option>';
+    
+    
+    
+    
+    
+    length+='</select>';
+    
+    
+    let selector_size;
+    if (req.query.size==1)
+        selector_size+='<option value="1" selected>1 MB</option>';
+    else
+        selector_size+='<option value="1">1 MB</option>';
+    
+    if (req.query.size==2)
+        selector_size+='<option value="2" selected>2 MB</option>';
+    else
+        selector_size+='<option value="2">2 MB</option>';
+    
+    if (req.query.size==5)
+        selector_size+='<option value="5" selected>5 MB</option>';
+    else
+        selector_size+='<option value="5">5 MB</option>';
+    
+    if (req.query.size==10)
+        selector_size+='<option value="10" selected>10 MB</option>';
+    else
+        selector_size+='<option value="10">10 MB</option>';
+    
+    if (req.query.size==25)
+        selector_size+='<option value="25" selected>25 MB</option>';
+    else
+        selector_size+='<option value="25">25 MB</option>';
+    
+    if (req.query.size==50)
+        selector_size+='<option value="50" selected>50 MB</option>';
+    else
+        selector_size+='<option value="50">50 MB</option>';
+    
+    if (req.query.size==100)
+        selector_size+='<option value="100" selected>100 MB</option>';
+    else
+        selector_size+='<option value="100">100 MB</option>';
+    
+    if (req.query.size==250)
+        selector_size+='<option value="250" selected>250 MB</option>';
+    else
+        selector_size+='<option value="250">250 MB</option>';
+    
+    if (req.query.size==500)
+        selector_size+='<option value="500" selected>500 MB</option>';
+    else
+        selector_size+='<option value="500">500 MB</option>';
+    
+    if (req.query.size==1000)
+        selector_size+='<option value="1000" selected>1000 MB</option>';
+    else
+        selector_size+='<option value="1000">1000 MB</option>';
+    
+    selector_size+='</select>';
+    
+    let ethofs = ethofsSDK(global.config.ETHOSERIAL);
+    
+    const options = {
+        ethofsOptions: {
+            hostingContractDuration: parseInt(req.query.duration),
+            hostingContractSize: parseInt(req.query.size*1E6)
+        }
+    };
+    console.log(options);
+    ethofs.calculateCost(options).then((cost)=> {
+        console.log(cost);
+        res.render('dash_storagecost', {
+            version: version,
+            selector_length: length,
+            selector_size: selector_size,
+            cost: Math.round(1000*cost.uploadCost/1E18)/1000,
+            title: 'ETHO | File storage cost calculator'
+        });
+    
+    })
+        .catch((error)=> {
+            logger.error("#server.routes.index.get.dash_storagecost: size: %s",error);
+        })
+    
+ });
+
+
+/* GET home page. */
 router.get('/dash_overview', async function(req, res, next) {
     
     logger.info("#server.routes.index.get.dash_overview");

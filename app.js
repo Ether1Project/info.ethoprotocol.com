@@ -19,6 +19,9 @@ const ethofsSDK = require('@ethofs/sdk');
 const ethofs = ethofsSDK();
 const { Octokit } = require("@octokit/core");
 
+const puppeteer = require('puppeteer');
+
+
 
 const {MISC_ensureAuthenticated, MISC_validation, MISC_makeid, MISC_maketoken, MISC_checkOrigin} = require('./misc');
 
@@ -48,7 +51,7 @@ global.email = new Email({
 
 // Define the globals
 global.debugon=true;
-global.version="1.12";
+global.version="1.13";
 
 
 // Init database
@@ -261,7 +264,6 @@ async function update1hrsDatabase() {
             
             // Check first if the latest entry is larger than 1 hour back
     
-    const puppeteer = require('puppeteer');
     
     await puppeteer.launch({
     }).then(async (browser) => {
@@ -465,7 +467,7 @@ async function update1hrsDatabase() {
             logger.error('#server.app.update1hrsDatabase: Error %s', error);
             throw error;
         })
-    
+        await browser.close();
     
     })
 }

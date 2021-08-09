@@ -7,6 +7,7 @@ head
   meta(name='viewport' content='width=device-width, minimum-scale=1, maximum-scale=1')
   meta(name='description', content='Info portal for ETHO protocol')
   meta(name='keywords', content='Crypto currency, ETHO protocol, IPFS')
+  meta(name='google-site-verification', content='fo7YVHrnO-aSryKEvGKGGpVWyuqP9_oABcGrSErY8Wk')
   meta(property='og:title', content='ETHO protocol dashboards - Get info about ETHO entities')
   meta(property='og:description', content='Info about ETHO protocol blockchain and ecosystem')
   meta(property='og:image', content='/dist/ima/logo.png')
@@ -35,7 +36,7 @@ head
 .wrapper.boxed-wrapper
   header.main-header
     // Logo
-    a.logo.blue-bg(href='index.html')
+    a.logo.blue-bg(href='/')
       // mini logo for sidebar mini 50x50 pixels
       span.logo-mini
         img(src='dist/img/logo.png' alt='' width='25%')
@@ -81,6 +82,14 @@ head
                           li.text-sm Removed wETHO account from richlist
                           li.text-sm Added Kucoin
 
+                        h3 V1.12
+                        ul
+                          li.text-sm Improved design and corporate identity
+                          li.text-sm First dashboard with social data for discord
+                          li.text-sm Added 2ndary account for Kucoin
+                          li.text-sm Changed exchange diagram to be stacked instead of showing absolute values
+                          li.text-sm Fixed CMC trending
+
 
   // Left side column. contains the logo and sidebar
   aside.main-sidebar
@@ -117,6 +126,8 @@ head
               a(href='/dash_social') ETHO social
             li
               a(href='/dash_financial2') ETHO If i had ...
+            li
+              a(href='/dash_storagecost') File storage calculator
 
 
 //            li
