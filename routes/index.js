@@ -936,21 +936,30 @@ function countProperties(obj) {
 
 /* GET home page. */
 router.get('/dash_exchanges', async function(req, res, next) {
-    var currency;
-    var title;
-    
+    let bd=[];
     
     logger.info("#server.routes.index.get.dash_exchanges");
     let data=[];
+    let exchange_percent;
     
-    const {body} = await got('https://api.ether1.org/api.php?api=chain_summary');
-    bd=JSON.parse(body);
     
     let vsql="SELECT * FROM info ORDER BY id DESC LIMIT 25";
     
     pool.query(vsql)
         .then(async (inforows) => {
             let exchange_all=getExchanges(inforows[0]);
+            await got('https://api.ether1.org/api.php?api=chain_summary')
+                .then((body)=>{
+                    logger.info("Body %s", JSON.parse(body.body)); // Print the json response
+                    bd = JSON.parse(body.body);
+                    exchange_percent=Math.round(exchange_all/bd.circulating_supply*10000)/100
+            
+                })
+                .catch((error)=>{
+                    logger.error("#server.routes.index.get.dash_exchanges: Error %s", error);
+                    exchange_percent="Not available";
+                })
+    
     
             data.push({
                 exchange_kucoin: MISC_numberFormating(inforows[0].etho_exchange_kucoin),
@@ -959,7 +968,7 @@ router.get('/dash_exchanges', async function(req, res, next) {
                 exchange_probit: MISC_numberFormating(inforows[0].etho_exchange_probit),
                 exchange_mercatox: MISC_numberFormating(inforows[0].etho_exchange_mercatox),
                 exchange_all: MISC_numberFormating(exchange_all),
-                exchange_percent: Math.round(exchange_all/bd.circulating_supply*10000)/100,
+                exchange_percent: exchange_percent,
                 kucoinFluctuation: Math.round((inforows[0].etho_exchange_kucoin/inforows[23].etho_exchange_kucoin*100-100)*100)/100,
                 stexFluctuation: Math.round((inforows[0].etho_exchange_stex/inforows[23].etho_exchange_stex*100-100)*100)/100,
                 graviexFluctuation: Math.round((inforows[0].etho_exchange_graviex/inforows[23].etho_exchange_graviex*100-100)*100)/100,
@@ -1189,15 +1198,21 @@ router.get('/dash_health', async function(req, res, next) {
 /* GET home page. */
 router.get('/dash_financial', function(req, res, next) {
     let data = [];
-    
+    let bd = [];
     
     (async () => {
-        const {body} = await got('https://api.ether1.org/api.php?api=chain_summary');
-        logger.info("Body %s", JSON.parse(body)); // Print the json response
-        bd=JSON.parse(body);
-        data.blockheight = MISC_numberFormating(bd.block_height);
-        data.circulatingsupply = MISC_numberFormating(bd.circulating_supply);
-        
+        await got('https://api.ether1.org/api.php?api=chain_summary')
+            .then((body) => {
+                logger.info("Body %s", body.body); // Print the json response
+                bd = JSON.parse(body.body);
+                data.blockheight = MISC_numberFormating(bd.block_height);
+                data.circulatingsupply = MISC_numberFormating(bd.circulating_supply);
+            })
+            .catch((error) => {
+                logger.error('#server.route.dash_financial: Error %s', error);
+                data.blockheight = "Not available";
+                data.circulatingsupply = "Not available";
+            })
         let vsql="SELECT * FROM info ORDER BY id DESC LIMIT "+ lastElement_30d;
         
         pool.query(vsql)
@@ -1413,11 +1428,18 @@ router.get('/dash_cmctrending', function(req, res, next) {
     
     
     (async () => {
-        const {body} = await got('https://api.ether1.org/api.php?api=chain_summary');
-        logger.info("Body %s", JSON.parse(body)); // Print the json response
-        bd=JSON.parse(body);
-        data.blockheight = MISC_numberFormating(bd.block_height);
-        data.circulatingsupply = MISC_numberFormating(bd.circulating_supply);
+        await got('https://api.ether1.org/api.php?api=chain_summary')
+            .then((body) => {
+                logger.info("Body %s", JSON.parse(body.body)); // Print the json response
+                bd = JSON.parse(body.body);
+                data.blockheight = MISC_numberFormating(bd.block_height);
+                data.circulatingsupply = MISC_numberFormating(bd.circulating_supply);
+            })
+            .catch((error) => {
+                logger.error('#server.route.dash_financial: Error %s', error);
+                data.blockheight = "Not available";
+                data.circulatingsupply = "Not available";
+            })
         
         let vsql="SELECT * FROM info ORDER BY id DESC LIMIT "+ lastElement_30d;
         
@@ -1842,19 +1864,22 @@ router.get('/dash_nodes', function(req, res, next) {
         const ethofsSDK = require('@ethofs/sdk');
         const ethofs = ethofsSDK();
         
-        let stats= await ethofs.networkStats().then((result) => {
+        let stats=[];
+        await ethofs.networkStats().then((result) => {
             //handle results here
-            return(result);
+            stats.gatewaynode_reward=Math.round(100*result.gatewaynode_reward)/100;
+            stats.masternode_reward=Math.round(100*result.masternode_reward)/100;
+            stats.servicenode_reward=Math.round(100*result.servicenode_reward)/100;
         }).catch((err) => {
             //handle error here
-            console.log(err);
+            stats.gatewaynode_reward="Not available";
+            stats.masternode_reward="Not available";
+            stats.servicenode_reward="Not available"
+            logger.error('#server.routes.index.dash_nodes: Error %s', err);
+    
         });
         
         console.log(stats);
-        stats.gatewaynode_reward=Math.round(100*stats.gatewaynode_reward)/100;
-        stats.masternode_reward=Math.round(100*stats.masternode_reward)/100;
-        stats.servicenode_reward=Math.round(100*stats.servicenode_reward)/100;
-        
         
         
         let vsql="SELECT * FROM info ORDER BY id DESC LIMIT " + lastElement_30d;
@@ -2428,7 +2453,7 @@ router.get('/dash_nodes', function(req, res, next) {
     
                 res.render('dash_nodes', {
                     version: version,
-                    title: 'ETHO | Financial dashboard',
+                    title: 'ETHO | Node dashboard',
                     ethofsstats: stats,
                     data: data,
                     db: inforows[0],

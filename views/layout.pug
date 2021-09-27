@@ -2,7 +2,7 @@ doctype html
 head
   meta(charset='utf-8')
   meta(http-equiv='X-UA-Compatible' content='IE=edge')
-  title ETHO info dashboards
+  title= title
   // Tell the browser to be responsive to screen width
   meta(name='viewport' content='width=device-width, minimum-scale=1, maximum-scale=1')
   meta(name='description', content='Info portal for ETHO protocol')
@@ -10,9 +10,9 @@ head
   meta(name='google-site-verification', content='fo7YVHrnO-aSryKEvGKGGpVWyuqP9_oABcGrSErY8Wk')
   meta(property='og:title', content='ETHO protocol dashboards - Get info about ETHO entities')
   meta(property='og:description', content='Info about ETHO protocol blockchain and ecosystem')
-  meta(property='og:image', content='/dist/ima/logo.png')
+  meta(property='og:image', content='/dist/ima/ethologo.png')
   meta(property='og:url', content='https://info.pinable.io')
-  meta(name='twitter:card', content='/dist/img/logo.png')
+  meta(name='twitter:card', content='/dist/img/ethologo.png')
   // Non-Essential, But Recommended
   meta(property='og:site_name', content='ETHO protocol dashboards')
   meta(name='twitter:image:alt', content='Info about ETHO protocol blockchain and ecosystem')
@@ -39,10 +39,10 @@ head
     a.logo.blue-bg(href='/')
       // mini logo for sidebar mini 50x50 pixels
       span.logo-mini
-        img(src='dist/img/logo.png' alt='' width='25%')
+        img(src='dist/img/ethologo.png' alt='' width='25%')
       // logo for regular state and mobile devices
       span.logo-lg
-        img(src='dist/img/logo.png' alt='' width='25%')
+        img(src='dist/img/ethologo.png' alt='' width='50%')
     // Header Navbar: style can be found in header.less
     nav.navbar.blue-bg.navbar-static-top
       // Sidebar toggle button
@@ -123,12 +123,12 @@ head
             li
               a(href='/dash_ipfs') ETHO IPFS
             li
-              a(href='/dash_social') ETHO social
-            li
               a(href='/dash_financial2') ETHO If i had ...
             li
               a(href='/dash_storagecost') File storage calculator
 
+//            li
+              a(href='/dash_social') ETHO social
 
 //            li
               a(href='/dash_activity') ETHO activity
