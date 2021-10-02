@@ -309,12 +309,47 @@ router.get('/dash_overview', async function(req, res, next) {
             content1 += "<canvas id='chartjs-1' class='chartjs' width='1540' height='770' style='display: block; height: 385px; width: 770px;'></canvas>";
             content1 += "<script>new Chart(document.getElementById('chartjs-1')," + JSON.stringify(chartobj) + ");</script>";
     
+            // Create chart for dev account
+            let devaccount_30d=[];
+            let labels_30d=[];
+            let i;
+            for (i = 0; i < lastElement_30d; i++) {
+                devaccount_30d[i] = inforows[i].etho_devfund;
+                labels_30d.push(-i + " hr");
+        
+            }
+    
+            let chartobj2 = {
+                type: 'line',
+                data: {
+                    labels:
+                    labels_30d,
+            
+                    datasets:
+                        [{
+                            'label': 'Dev account',
+                            data: devaccount_30d,
+                            backgroundColor: 'rgb(87,190,194)',
+                            fill: true
+                        }]
+            
+                },
+                options: {
+                    responsive: true
+                }
+            };
+    
+            let content2;
+            content2 = "<canvas id='chartjs-2' class='chartjs'></canvas>";
+            content2 += "<script>new Chart(document.getElementById('chartjs-2')," + JSON.stringify(chartobj2) + ");</script>";
+    
     
             res.render('dash_overview', {
                 version: version,
                 title: 'ETHO | Overview',
                 data: data,
-                chart1: content1
+                chart1: content1,
+                chart2: content2
             });
         })
         .catch((error)=>{
@@ -1855,7 +1890,7 @@ router.get('/dash_cmctrending', function(req, res, next) {
 });
 
 /* GET home page. */
-router.get('/dash_nodes', function(req, res, next) {
+router.get('/dash', function(req, res, next) {
     let data = [];
     
     

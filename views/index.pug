@@ -8,9 +8,6 @@ block content
     a.twitter-share-button(href='https://twitter.com/intent/tweet?text=Great%20info%20about%20ETHO%20protocol.%20Check%20out%20this%20page.')
       | Tweet ths page
 
-    p We serve data at Your fingertips. Please use it to generate news about the ETHO protocol.
-    | All data here is updated on hourly basis. Just snapshot it and share the news with the world.
-    | In future You can even subsribe to events and get informed via a news flash if any of the indicators show extra ordinary activity.
 
     ol.breadcrumb
       li
@@ -35,11 +32,25 @@ block content
         .info-box.h-100.d-inline-block
           .d-flex.flex-wrap
             div
+              h4.text-black About this site
+          .m-t-2
+            div
+              p We serve data at Your fingertips. Please use it to generate news about the ETHO protocol.
+              | All data here is updated on hourly basis. Just snapshot it and share the news with the world.
+              | In future You can even subsribe to events and get informed via a news flash if any of the indicators show extra ordinary activity.
+            div
+              p
+        .info-box.h-100.d-inline-block
+
+          .d-flex.flex-wrap
+            div
               h4.text-black What's new in #{version}
           .m-t-2
             div
               ul
                 li Added functionality to do cost estimation for files
+                li Added dev fund tracking to
+                  a(href='/dash_overview')  Supply page
 
 
 
