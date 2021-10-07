@@ -274,7 +274,7 @@ async function update1hrsDatabase() {
                 
                 const page = await browser.newPage();
                 
-                await page.goto('https://richlist.ethoprotocol.com', {
+                await page.goto('http://144.91.93.170/', {
                     waitUntil: 'networkidle0',
                 })
                     .then(async () => {
@@ -305,12 +305,15 @@ async function update1hrsDatabase() {
                             }
                         })
                             .catch((error) => {
-                                logger.info("Fail");
+                                logger.error("#erver.app.update1hrsDatabase: Error: %s", error);
                             })
                     })
                     .catch((error) => {
+                        logger.error("#erver.app.update1hrsDatabase: Error: %s", error);
+
                         etho_richlist.push(JSON.parse(inforows[0].etho_richlist));
-                        logger.info("Fail");
+                        logger.error("Fail", inforows);
+    
                     })
                 
                 

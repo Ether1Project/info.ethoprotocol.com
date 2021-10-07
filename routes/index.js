@@ -1890,7 +1890,7 @@ router.get('/dash_cmctrending', function(req, res, next) {
 });
 
 /* GET home page. */
-router.get('/dash', function(req, res, next) {
+router.get('/dash_nodes', function(req, res, next) {
     let data = [];
     
     
