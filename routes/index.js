@@ -343,13 +343,45 @@ router.get('/dash_overview', async function(req, res, next) {
             content2 = "<canvas id='chartjs-2' class='chartjs'></canvas>";
             content2 += "<script>new Chart(document.getElementById('chartjs-2')," + JSON.stringify(chartobj2) + ");</script>";
     
+            // Create chart for dev account
+            let masteraccount_30d=[];
+            for (i = 0; i < lastElement_30d; i++) {
+                masteraccount_30d[i] = inforows[i].etho_masterfund;
+            }
+    
+            let chartobj3 = {
+                type: 'line',
+                data: {
+                    labels:
+                    labels_30d,
+            
+                    datasets:
+                        [{
+                            'label': 'Master account',
+                            data: masteraccount_30d,
+                            backgroundColor: 'rgb(87,190,194)',
+                            fill: true
+                        }]
+            
+                },
+                options: {
+                    responsive: true
+                }
+            };
+    
+            let content3;
+            content3 = "<canvas id='chartjs-3' class='chartjs'></canvas>";
+            content3 += "<script>new Chart(document.getElementById('chartjs-3')," + JSON.stringify(chartobj3) + ");</script>";
+    
+    
     
             res.render('dash_overview', {
                 version: version,
                 title: 'ETHO | Overview',
                 data: data,
                 chart1: content1,
-                chart2: content2
+                chart2: content2,
+                chart3: content3
             });
         })
         .catch((error)=>{
