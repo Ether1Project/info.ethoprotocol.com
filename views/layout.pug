@@ -16,6 +16,14 @@ head
   // Non-Essential, But Recommended
   meta(property='og:site_name', content='ETHO protocol dashboards')
   meta(name='twitter:image:alt', content='Info about ETHO protocol blockchain and ecosystem')
+  script(async='' src='https://www.googletagmanager.com/gtag/js?id=G-S09SJKYMPM')
+  script.
+    window.dataLayer = window.dataLayer || [];
+    function gtag() {
+      dataLayer.push(arguments);
+    }
+    gtag('js', new Date());
+    gtag('config', 'G-S09SJKYMPM');
 
 
 
@@ -126,6 +134,10 @@ head
               a(href='/dash_financial2') ETHO If i had ...
             li
               a(href='/dash_storagecost') File storage calculator
+            li
+              a(href='/dash_health') ETHO asset health
+            li
+              a(href='/dash_google') ETHO Google analytics
 
 //            li
               a(href='/dash_social') ETHO social
@@ -134,8 +146,6 @@ head
               a(href='/dash_activity') ETHO activity
 //            li
               a(href='/dash_subscribe') Subscribe to events
-//            li
-              a(href='/dash_health') ETHO asset health
 
 
 

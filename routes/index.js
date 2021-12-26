@@ -275,13 +275,18 @@ router.get('/dash_overview', async function(req, res, next) {
             let devfund = inforows[0].etho_devfund;
             supply.push(Math.round((100*devfund)/100));
     
+            label.push("Master fund");
+            rgbstr.push('rgb(248,224,5)');
+            let masterfund = inforows[0].etho_masterfund;
+            supply.push(Math.round((100*devfund)/100));
+    
     
             let nodes_collateral=parseInt(inforows[0].etho_active_gatewaynodes*30000)+ parseInt(inforows[0].etho_active_masternode*15000)+ parseInt(inforows[0].etho_active_servicenodes*5000);
             label.push("Nodes");
             rgbstr.push('rgb(239,66,127)');
             supply.push(Math.round((100*nodes_collateral)/100));
     
-            let remain=Math.round(100*(inforows[0].coin_1_supply-inforows[0].wetho_totalSupply/1E18-exchange_all-inforows[0].etho_devfund-nodes_collateral))/100;
+            let remain=Math.round(100*(inforows[0].coin_1_supply-inforows[0].wetho_totalSupply/1E18-exchange_all-inforows[0].etho_devfund-inforows[0].etho_masterfund-nodes_collateral))/100;
             
             label.push("HODL");
             rgbstr.push('rgb(7,7,7)');
@@ -344,12 +349,13 @@ router.get('/dash_overview', async function(req, res, next) {
             content2 += "<script>new Chart(document.getElementById('chartjs-2')," + JSON.stringify(chartobj2) + ");</script>";
     
             // Create chart for dev account
-            let masteraccount_30d=[];
+            let devaccount2_30d=[];
             for (i = 0; i < lastElement_30d; i++) {
-                masteraccount_30d[i] = inforows[i].etho_masterfund;
+                devaccount2_30d[i] = inforows[i].etho_devfund2;
+        
             }
     
-            let chartobj3 = {
+            let chartobj2b = {
                 type: 'line',
                 data: {
                     labels:
@@ -357,8 +363,42 @@ router.get('/dash_overview', async function(req, res, next) {
             
                     datasets:
                         [{
+                            'label': 'Dev account',
+                            data: devaccount2_30d,
+                            backgroundColor: 'rgb(87,190,194)',
+                            fill: true
+                        }]
+            
+                },
+                options: {
+                    responsive: true
+                }
+            };
+    
+            let content2b;
+            content2b = "<canvas id='chartjs-2b' class='chartjs'></canvas>";
+            content2b += "<script>new Chart(document.getElementById('chartjs-2b')," + JSON.stringify(chartobj2b) + ");</script>";
+    
+            // Create chart for dev account
+            let masteraccount_7d=[];
+            let labels_7d=[];
+    
+            for (i = 0; i < lastElement_7d; i++) {
+                masteraccount_7d[i] = inforows[i].etho_masterfund;
+                labels_7d.push(-i + " hr");
+        
+            }
+    
+            let chartobj3 = {
+                type: 'line',
+                data: {
+                    labels:
+                    labels_7d,
+            
+                    datasets:
+                        [{
                             'label': 'Master account',
-                            data: masteraccount_30d,
+                            data: masteraccount_7d,
                             backgroundColor: 'rgb(87,190,194)',
                             fill: true
                         }]
@@ -381,6 +421,7 @@ router.get('/dash_overview', async function(req, res, next) {
                 data: data,
                 chart1: content1,
                 chart2: content2,
+                chart2b: content2b,
                 chart3: content3
             });
         })
@@ -905,10 +946,10 @@ router.get('/dash_ipfs', async function(req, res, next) {
     
             for (key in bd) {
                 if (bd.hasOwnProperty(key)) {
-                    if (!(k % 100)) {
+                    if (!(k % 10)) {
                         contracts[i] = parseInt(bd[key].activeUploadContracts).toString();
                         networkStorage[i] = parseInt(bd[key].totalNetworkStorageUsed) / 1E9;
-                        labels.push(1000000 + i * 100000);
+                        labels.push(parseInt(bd[key].blockNumber));
                         i = i + 1;
                     }
                     k = k + 1;
@@ -1177,6 +1218,40 @@ router.get('/dash_exchanges', async function(req, res, next) {
         })
 });
 
+GetNumberOfSessions = function () {
+    var def = q.defer();
+    var gAnalytics = google.analytics('v3');
+    var authClient = new google.auth.JWT( SERVICE_ACCOUNT_EMAIL, SERVICE_ACCOUNT_KEY_FILE, null, ['https://www.googleapis.com/auth/analytics.readonly']);
+    
+    authClient.authorize(function (err, tokens) {
+        if (err) {
+            console.log("err is: " + err);
+            return;
+        }
+        
+        var params = {
+            'auth': authClient,
+            'ids': 'ga:********',
+            'metrics': 'ga:sessions',
+            'start-date': '7daysAgo',
+            'end-date': 'today',
+            'dimensions': 'ga:date'
+        }
+        
+        gAnalytics.data.ga.get(params, function (err, data) {
+            def.resolve(data.rows);
+        });
+    });
+    
+    return def.promise;
+}
+
+
+
+
+router.get('/dash_google', async function(req, res, next) {
+
+});
 
 router.get('/dash_health', async function(req, res, next) {
     var currency;

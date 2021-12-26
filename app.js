@@ -22,7 +22,6 @@ const { Octokit } = require("@octokit/core");
 const puppeteer = require('puppeteer');
 
 
-
 const {MISC_ensureAuthenticated, MISC_validation, MISC_makeid, MISC_maketoken, MISC_checkOrigin} = require('./misc');
 
 // Init email setup
@@ -326,6 +325,7 @@ async function update1hrsDatabase() {
                     let exchange_mercatox = 0;
                     let exchange_probit = 0;
                     let etho_devfund = 0;
+                    let etho_devfund2 = 0;
                     let etho_masterfund = 0;
                     logger.info("#server.aoo.update1hrsDatabase: Fetching data from exchanges...");
                     await got('http://161.97.164.158:4000/api?module=account&action=balance&address=0xFBd45D6ED333c4ae16d379ca470690E3F8d0D2a2')
@@ -360,6 +360,15 @@ async function update1hrsDatabase() {
                             let bd = JSON.parse(res.body);
                             etho_devfund = parseInt(bd.result / 1E18);
                             logger.info("Devfund: %s ETHO", etho_devfund); // Print the json response
+                        })
+                        .catch((error) => {
+                            logger.info("#server.app.udate1hrsDatabase: %s", error);
+                        })
+                    await got('http://161.97.164.158:4000/api?module=account&action=balance&address=0xBA57dFe21F78F921F53B83fFE1958Bbab50F6b46')
+                        .then((res) => {
+                            let bd = JSON.parse(res.body);
+                            etho_devfund2 = parseInt(bd.result / 1E18);
+                            logger.info("Devfund2: %s ETHO", etho_devfund2); // Print the json response
                         })
                         .catch((error) => {
                             logger.info("#server.app.udate1hrsDatabase: %s", error);
@@ -451,7 +460,7 @@ async function update1hrsDatabase() {
                                             "etho_richlist, " +
                                             "etho_gatewaynode_reward, etho_masternode_reward, etho_servicenode_reward, " +
                                             "wetho_totalSupply, wetho_tranfersCount, wetho_holdersCount, " +
-                                            "socialDiscord_members, etho_masterfund, date) VALUES ("
+                                            "socialDiscord_members, etho_masterfund, etho_devfund2, date) VALUES ("
                                             + jsonarr.data.ETHO.id + ",'" + jsonarr.data.ETHO.name + "','" + jsonarr.data.ETHO.symbol + "', " + jsonarr.data.ETHO.cmc_rank + ", " + jsonarr.data.ETHO.num_market_pairs + ", " + jsonarr.data.ETHO.circulating_supply + ", " + jsonarr.data.ETHO.quote.USD.price + ", " + Math.round(jsonarr.data.ETHO.quote.USD.percent_change_24h * 100) + ", " + Math.round(jsonarr.data.ETHO.quote.USD.percent_change_7d * 100) + ", " + Math.round(jsonarr.data.ETHO.quote.USD.percent_change_30d * 100) + ", " +
                                             +jsonarr.data.FIL.id + ",'" + jsonarr.data.FIL.name + "','" + jsonarr.data.FIL.symbol + "', " + jsonarr.data.FIL.cmc_rank + ", " + jsonarr.data.FIL.num_market_pairs + ", " + jsonarr.data.FIL.circulating_supply + ", " + jsonarr.data.FIL.quote.USD.price + "," + Math.round(jsonarr.data.FIL.quote.USD.percent_change_24h * 100) + ", " + Math.round(jsonarr.data.FIL.quote.USD.percent_change_7d * 100) + ", " + Math.round(jsonarr.data.FIL.quote.USD.percent_change_30d * 100) + ", " +
                                             +jsonarr.data.SC.id + ",'" + jsonarr.data.SC.name + "','" + jsonarr.data.SC.symbol + "', " + jsonarr.data.SC.cmc_rank + ", " + jsonarr.data.SC.num_market_pairs + ", " + jsonarr.data.SC.circulating_supply + ", " + jsonarr.data.SC.quote.USD.price + "," + Math.round(jsonarr.data.SC.quote.USD.percent_change_24h * 100) + ", " + Math.round(jsonarr.data.SC.quote.USD.percent_change_7d * 100) + ", " + Math.round(jsonarr.data.SC.quote.USD.percent_change_30d * 100) + ", " +
@@ -460,7 +469,7 @@ async function update1hrsDatabase() {
                                             stats.active_gatewaynodes + "," + stats.active_masternodes + "," + stats.active_servicenodes + "," + hashrate + "," + difficulty + "," +
                                             exchange_kucoin + "," + exchange_stex + "," + exchange_graviex + "," + exchange_mercatox + "," + exchange_probit + "," + etho_devfund + ",'" + JSON.stringify(etho_richlist) + "'," + Math.round(stats.gatewaynode_reward * 10) + "," + Math.round(stats.masternode_reward * 10) + "," + Math.round(stats.servicenode_reward * 10) + ",'" +
                                             wETHO.totalSupply + "'," + wETHO.transfersCount + "," + wETHO.holdersCount + "," +
-                                            discordMembers + "," + etho_masterfund + ",'" + pool.mysqlNow() + "')";
+                                            discordMembers + "," + etho_masterfund + "," + etho_devfund2 + ",'" + pool.mysqlNow() + "')";
                                         
                                         
                                         await pool.query(sql)
