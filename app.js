@@ -237,7 +237,9 @@ async function update1hrsDatabase() {
                 }
             }
             logger.info('#server.app.update1hrsDatabase: Discord members %s', discordMembers);
-        });
+        }).catch((e)=> {
+          logger.error("Can't fetch discord data: %s", e);
+      });
     
     
     let wETHO;
