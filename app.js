@@ -20,6 +20,7 @@ const ethofs = ethofsSDK();
 const { Octokit } = require("@octokit/core");
 
 const puppeteer = require('puppeteer');
+const Web3 = require('web3');
 
 
 const {MISC_ensureAuthenticated, MISC_validation, MISC_makeid, MISC_maketoken, MISC_checkOrigin} = require('./misc');
@@ -227,19 +228,19 @@ async function update1hrsDatabase() {
     */
     
     let discordMembers = 0;
-    await got('http://95.111.230.192:8080/rest/guild')
-        .then((res) => {
-            let result = JSON.parse(res.body);
-            for (i = 0; i < result.guild.length; i++) {
-                if (result.guild[i].guildId == '426241424229662721') {
-                    discordMembers = result.guild[i].guildMember;
-                    break;
-                }
-            }
-            logger.info('#server.app.update1hrsDatabase: Discord members %s', discordMembers);
-        }).catch((e)=> {
-          logger.error("Can't fetch discord data: %s", e);
-      });
+    // await got('http://95.111.230.192:8080/rest/guild')
+    //     .then((res) => {
+    //         let result = JSON.parse(res.body);
+    //         for (i = 0; i < result.guild.length; i++) {
+    //             if (result.guild[i].guildId == '426241424229662721') {
+    //                 discordMembers = result.guild[i].guildMember;
+    //                 break;
+    //             }
+    //         }
+    //         logger.info('#server.app.update1hrsDatabase: Discord members %s', discordMembers);
+    //     }).catch((e)=> {
+    //       logger.error("Can't fetch discord data: %s", e);
+    //   });
     
     
     let wETHO;
@@ -398,7 +399,8 @@ async function update1hrsDatabase() {
                         })
                     
                     // Fetch node stats
-                    let stats;
+                    var stats=[];
+                    stats.activeUploadContracts=0;
                     stats = await ethofs.networkStats().then((result) => {
                         //handle results here
                         logger.info("#server.app.update1hrsDatabase: Fetching network stats ...");
@@ -406,11 +408,52 @@ async function update1hrsDatabase() {
                         return (result);
                     })
                         .catch((error) => {
-                            logger.error("#server.app.update1hrsDatabase: Error %s", error);
+                            logger.error("#server.app.update1hrsDatabase: Fetching node stats: Error %s", error);
                         })
-                    
-                    
-                    let difficulty = 0;
+                  
+                  
+                    // Overwrite the storage contracts with an own call
+                    const web3 = new Web3(new Web3.providers.HttpProvider('https://rpc.ether1.org'));
+                    const pinStorageContractAddress = '0xD3b80c611999D46895109d75322494F7A49D742F';
+                    const pinStorageABI = JSON.parse('[{"constant":false,"inputs":[{"name":"newOperator","type":"address"}],"name":"changeOperator","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"name":"set","type":"uint32"}],"name":"SetReplicationFactor","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"name":"pin","type":"string"}],"name":"PinRemove","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[],"name":"deleteContract","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"name":"pin","type":"string"},{"name":"size","type":"uint32"}],"name":"PinAdd","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"PinCount","outputs":[{"name":"","type":"uint32"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"ReplicationFactor","outputs":[{"name":"","type":"uint32"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[{"name":"","type":"uint256"}],"name":"Pins","outputs":[{"name":"","type":"string"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[{"name":"pin","type":"string"}],"name":"GetPinSize","outputs":[{"name":"","type":"uint32"}],"payable":false,"stateMutability":"view","type":"function"},{"inputs":[],"payable":false,"stateMutability":"nonpayable","type":"constructor"}]');
+    
+                    const pinContract = new web3.eth.Contract(
+                      pinStorageABI,
+                      pinStorageContractAddress
+                    );
+                    pinContract.methods.PinCount().call((err, count) => {
+                      if(err){
+                        console.error('cant get contracts Count ');
+                      }
+                      // for (let i =0; i <= count; i++) {
+                      // pinContract.methods.Pins(0).call((err, hash) => {
+                      // if(err){
+                      // console.error('cant get contract hash ');
+                      // }
+                      // console.log(hash)
+                      // pinContract.methods.GetPinSize(hash).call((err, size) => {
+                      // if (size !== '5000') {
+                      // console.log(i,hash,size)
+                      // };
+      
+                      // })
+      
+                      // })
+                      // if (i > 10) {
+                      // break
+                      // }
+                      // }
+                      console.log("TOTAL PINS:",count)
+                      console.log("TOTAL Size:",count/101.649142,"GIGABYTES")
+                      stats.activeUploadContracts=count;
+                      stats.totalNetworkStorageUsed=count/101.649142;
+    
+                    })
+  
+  
+  
+  
+                  let difficulty = 0;
                     let hashrate = 0;
                     
                     await got('http://api.ether1.org/api.php?api=network_stats')
