@@ -577,12 +577,12 @@ async function update1hrsDatabase() {
                       exchange_kucoin + "," + exchange_stex + "," + exchange_graviex + "," + exchange_mercatox + "," + exchange_probit + "," + etho_devfund + ",'" + JSON.stringify(etho_richlist) + "'," + Math.round(stats.gatewaynode_reward * 10) + "," + Math.round(stats.masternode_reward * 10) + "," + Math.round(stats.servicenode_reward * 10) + ",'" +
                       wETHO.totalSupply + "'," + wETHO.transfersCount + "," + wETHO.holdersCount + "," +
                       discordMembers + "," + etho_masterfund + "," + etho_devfund2 + ",'" + pool.mysqlNow() + "')";
-                    await pool.query(vsql)
-                      .then(async (prevrow) => {
+                    await pool.query(sql)
+                      .then(async (row) => {
                         logger.info('#server.app.update1hrsDatabase: New dataset.');
                       })
                       .catch((error) => {
-                        logger.error("#server.app.update1hrsDatabase: 4 %s", error);
+                        logger.error("#server.app.update1hrsDatabase: Error %s", error);
                       });
   
                   });
