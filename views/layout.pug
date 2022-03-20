@@ -8,9 +8,9 @@ head
   meta(name='description', content='Info portal for ETHO protocol')
   meta(name='keywords', content='Crypto currency, ETHO protocol, IPFS')
   meta(name='google-site-verification', content='fo7YVHrnO-aSryKEvGKGGpVWyuqP9_oABcGrSErY8Wk')
-  meta(property='og:title', content='ETHO protocol dashboards - Get info about ETHO entities')
+  meta(property='og:title', content='ETHO protocol dashboards - Get info about ETHO')
   meta(property='og:description', content='Info about ETHO protocol blockchain and ecosystem')
-  meta(property='og:image', content='/dist/ima/ethologo.png')
+  meta(property='og:image', content='/dist/img/ethologo.png')
   meta(property='og:url', content='https://info.pinable.io')
   meta(name='twitter:card', content='/dist/img/ethologo.png')
   // Non-Essential, But Recommended
@@ -58,13 +58,8 @@ head
         li
           a.sidebar-toggle(data-toggle='push-menu' href='')
       .pull-left.search-box
-        form.search-form(action='#' method='get')
-          .input-group
-            input.form-control(name='search' placeholder='Search...' type='text')
-            span.input-group-btn
-              button#search-btn.btn.btn-flat(type='submit' name='search')
-                i.fa.fa-search
-        // search form
+
+
       .navbar-custom-menu
         .navbar-custom-menu
           ul.nav.navbar-nav
@@ -183,7 +178,7 @@ head
     else
       .pull-right.hidden-xs= data.date
         | | Version #{version}
-    | Copyright © 2021 ETHO protocol. All rights reserved.
+    | Copyright © 2022 Etho Protocol. All rights reserved.
 // ./wrapper
 // jQuery 3
 script(src='dist/js/jquery.min.js')

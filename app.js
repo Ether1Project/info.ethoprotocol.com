@@ -21,7 +21,7 @@ const { Octokit } = require("@octokit/core");
 
 const puppeteer = require('puppeteer');
 const Web3 = require('web3');
-const web3 = new Web3(new Web3.providers.HttpProvider('https://rpc.ether1.org'));
+const web3 = new Web3(new Web3.providers.HttpProvider('https://rpc.ethoprotocol.com'));
 
 
 
@@ -53,7 +53,7 @@ global.email = new Email({
 
 // Define the globals
 global.debugon=true;
-global.version="1.14";
+global.version="2.00";
 
 
 // Init database
@@ -228,6 +228,7 @@ async function update1hrsDatabase() {
         // In case we have issues with any dataset we keep the old one to have a more consistent behaviour
         sql = 'SELECT * FROM info ORDER BY id DESC LIMIT 1;'
         logger.info("#server.app.update1hrsdatabase: Fetching old data set %s", sql);
+        
         prevrow = await pool.query(sql)
           .then(function (rows) {
             return (rows);
@@ -269,8 +270,8 @@ async function update1hrsDatabase() {
         //     }).catch((e)=> {
         //       logger.error("Can't fetch discord data: %s", e);
         //   });
-        
-        
+  
+  
         await got('https://api.ethplorer.io/getTokenInfo/0x99676c9fa4c77848aeb2383fcfbd7e980dc25027?apiKey=' + config.ETHPLORERKEY)
           .then((res) => {
             wETHO = JSON.parse(res.body);
@@ -282,9 +283,9 @@ async function update1hrsDatabase() {
             wETHO.holdersCount = prevrow[0].wetho_holdersCount;
           })
         
-        logger.info("#server.app.update1hrsdatabase: totalSupply=%s", wETHO.totalSupply);
-        logger.info("#server.app.update1hrsdatabase: wetho_transfersCount=%s", wETHO.transfersCount);
-        logger.info("#server.app.update1hrsdatabase: wetho_holdersCount=%s", wETHO.holdersCount);
+        logger.info("#server.app.update1hrsdatabase: wETHO totalSupply=%s", wETHO.totalSupply);
+        logger.info("#server.app.update1hrsdatabase: wETHO wetho_transfersCount=%s", wETHO.transfersCount);
+        logger.info("#server.app.update1hrsdatabase: wETHO wetho_holdersCount=%s", wETHO.holdersCount);
         
         let wETHO_holder;
         let exchange_kucoin = 0;
@@ -306,13 +307,15 @@ async function update1hrsDatabase() {
         logger.info("#server.app.update1hrsdatabase: exchange_kucoin %s", exchange_kucoin);
         
         // Fetch node stats
-        stats = await ethofs.networkStats()
-          .then((result) => {
-            //handle results here
-            logger.info("#server.app.update1hrsDatabase: Fetching network stats ...");
+        logger.info("#server.app.update1hrsDatabase: Fetching network stats ...");
+        stats= await got('https://api.ethoprotocol.com/ethofsapi.php?api=network_stats')
+          .then((res) => {
+            let result = JSON.parse(res.body);
+            console.log(result);
             return (result);
           })
           .catch((error) => {
+            let stats=[];
             logger.error("#server.app.update1hrsDatabase: Fetching node stats: Error %s", error);
             stats.activeUploadContracts = prevrow[0].etho_activeUploadContracts;
             stats.totalNetworkStorageUsed = prevrow[0].etho_totalNetworkStorageUse;
@@ -320,9 +323,15 @@ async function update1hrsDatabase() {
             stats.active_gatewaynodes = prevrow[0].etho_active_gatewaynodes;
             stats.active_masternodes = prevrow[0].etho_active_masternode;
             stats.active_servicenodes = prevrow[0].etho_active_servicenodes;
+            stats.gatewaynode_reward = prevrow[0].etho_gatewaynode_reward;
+            stats.masternode_reward = prevrow[0].etho_masternode_reward;
+            stats.servicenode_reward = prevrow[0].etho_servicenode_reward;
+            console.log(stats);
             return (stats);
           })
-        
+  
+        logger.info("#server.app.update1hrsDatabase: pinStorage");
+  
         // Overwrite the storage contracts with an own call
         const pinStorageContractAddress = '0xD3b80c611999D46895109d75322494F7A49D742F';
         const pinStorageABI = JSON.parse('[{"constant":false,"inputs":[{"name":"newOperator","type":"address"}],"name":"changeOperator","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"name":"set","type":"uint32"}],"name":"SetReplicationFactor","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"name":"pin","type":"string"}],"name":"PinRemove","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[],"name":"deleteContract","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"name":"pin","type":"string"},{"name":"size","type":"uint32"}],"name":"PinAdd","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"PinCount","outputs":[{"name":"","type":"uint32"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"ReplicationFactor","outputs":[{"name":"","type":"uint32"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[{"name":"","type":"uint256"}],"name":"Pins","outputs":[{"name":"","type":"string"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[{"name":"pin","type":"string"}],"name":"GetPinSize","outputs":[{"name":"","type":"uint32"}],"payable":false,"stateMutability":"view","type":"function"},{"inputs":[],"payable":false,"stateMutability":"nonpayable","type":"constructor"}]');
@@ -373,7 +382,7 @@ async function update1hrsDatabase() {
         let etho_devfund2 = 0;
         let etho_masterfund = 0;
         logger.info("#server.app.update1hrsDatabase: Fetching data from exchanges...");
-        await got('http://161.97.164.158:4000/api?module=account&action=balance&address=0xFBd45D6ED333c4ae16d379ca470690E3F8d0D2a2')
+        await got('https://explorer.ethoprotocol.com/api?module=account&action=balance&address=0xFBd45D6ED333c4ae16d379ca470690E3F8d0D2a2')
           .then((res) => {
             let bd = JSON.parse(res.body);
             exchange_stex = parseInt(bd.result / 1E18);
@@ -383,7 +392,7 @@ async function update1hrsDatabase() {
             logger.info("#server.app.udate1hrsDatabase: %s", error);
             exchange_stex = prevrow[0].etho_exchange_stex;
           })
-        await got('http://161.97.164.158:4000/api?module=account&action=balance&address=0x548833f13d6bf156260f6e1769c847991c0f6324')
+        await got('https://explorer.ethoprotocol.com/api?module=account&action=balance&address=0x548833f13d6bf156260f6e1769c847991c0f6324')
           .then((res) => {
             let bd = JSON.parse(res.body);
             exchange_graviex = parseInt(bd.result / 1E18);
@@ -393,7 +402,7 @@ async function update1hrsDatabase() {
             logger.info("#server.app.udate1hrsDatabase: %s", error);
             exchange_graviex = prevrow[0].etho_exchange_graviex;
           })
-        await got('http://161.97.164.158:4000/api?module=account&action=balance&address=0xccdbbb5d42e631ea6b040dee17fa78232ec4c87e')
+        await got('https://explorer.ethoprotocol.com/api?module=account&action=balance&address=0xccdbbb5d42e631ea6b040dee17fa78232ec4c87e')
           .then((res) => {
             let bd = JSON.parse(res.body);
             exchange_mercatox = parseInt(bd.result / 1E18);
@@ -403,7 +412,7 @@ async function update1hrsDatabase() {
             logger.info("#server.app.udate1hrsDatabase: %s", error);
             exchange_mercatox = prevrow[0].etho_exchange_mercatox;
           })
-        await got('http://161.97.164.158:4000/api?module=account&action=balance&address=0xe2c8cbec30c8513888f7a95171ea836f8802d981')
+        await got('https://explorer.ethoprotocol.com/api?module=account&action=balance&address=0xe2c8cbec30c8513888f7a95171ea836f8802d981')
           .then((res) => {
             let bd = JSON.parse(res.body);
             etho_devfund = parseInt(bd.result / 1E18);
@@ -413,7 +422,7 @@ async function update1hrsDatabase() {
             logger.info("#server.app.udate1hrsDatabase: %s", error);
             etho_devfund = prevrow[0].etho_devfund;
           })
-        await got('http://161.97.164.158:4000/api?module=account&action=balance&address=0xBA57dFe21F78F921F53B83fFE1958Bbab50F6b46')
+        await got('https://explorer.ethoprotocol.com/api?module=account&action=balance&address=0xBA57dFe21F78F921F53B83fFE1958Bbab50F6b46')
           .then((res) => {
             let bd = JSON.parse(res.body);
             etho_devfund2 = parseInt(bd.result / 1E18);
@@ -424,7 +433,7 @@ async function update1hrsDatabase() {
             etho_devfund2 = prevrow[0].etho_devfund2;
           })
         
-        await got('http://161.97.164.158:4000/api?module=account&action=balance&address=0xE19363Ffb51C62bEECd6783A2c9C5bfF5D4679ac')
+        await got('https://explorer.ethoprotocol.com/api?module=account&action=balance&address=0xE19363Ffb51C62bEECd6783A2c9C5bfF5D4679ac')
           .then((res) => {
             let bd = JSON.parse(res.body);
             etho_masterfund = parseInt(bd.result / 1E18);
@@ -436,7 +445,7 @@ async function update1hrsDatabase() {
           })
         
         
-        await got('http://161.97.164.158:4000/api?module=account&action=balance&address=0xe82e114833c558496b7d2405584c5a2286b9170e')
+        await got('https://explorer.ethoprotocol.com/api?module=account&action=balance&address=0xe82e114833c558496b7d2405584c5a2286b9170e')
           .then((res) => {
             let bd = JSON.parse(res.body);
             exchange_probit = parseInt(bd.result / 1E18);
@@ -453,22 +462,20 @@ async function update1hrsDatabase() {
         logger.info("#server.app.update1hrsDatabase: %s", etho_devfund);
         logger.info("#server.app.update1hrsDatabase: %s", etho_devfund2);
         logger.info("#server.app.update1hrsDatabase: %s", etho_masterfund);
-        
-        
+  
+        logger.info("#server.app.update1hrsDatabase: Fetch diff and hashrate");
         let difficulty = 0;
         let hashrate = 0;
         
-        await got('http://api.ether1.org/api.php?api=network_stats')
-          .then((ok) => {
-            let bd = JSON.parse(ok.body);
-            difficulty = parseInt(bd.difficulty);
-            hashrate = parseInt(bd.hashrate);
+        await getNetworkStats(10)
+          .then((res)=>{
+            difficulty = res.difficulty;
+            hashrate = res.hashrate;
           })
-          .catch((error) => {
-            logger.error("#server.app.update1hrsDatabase: Error %s", error);
-            difficulty = prevrow[0].etho_difficulty;
-            hashrate = prevrow[0].etho_hashrate;
+          .catch((error)=>{
+            logger.error("#server.app.update1hrsDatabase: No data: %s", error);
           })
+        
         logger.info("#server.app.update1hrsDatabase: difficulty: %s", difficulty);
         logger.info("#server.app.update1hrsDatabase: hashrate: %s", hashrate);
         
@@ -620,6 +627,34 @@ var longIntervalId=setInterval(
   () => update1hrsDatabase(),
   60000*60
 );
+
+async function getNetworkStats(
+  sampleSize //!< [in] Larger n give more accurate numbers but with longer latency.
+) {
+  let blockNum = await web3.eth.getBlockNumber()
+    .then((res)=>{
+      return(res);
+    })
+    .catch((error)=>{
+      logger.error("#app.getNetworkStats: Error %s", error);
+    })
+  let difficulty = await web3.eth.getBlock(blockNum)
+    .then((res)=>{
+      return(res.difficulty);
+    })
+    .catch((error)=>{
+      logger.error("#app.getNetworkStats: Error %s", error);
+    })
+  
+  
+  let blockTime = (await web3.eth.getBlock(blockNum).then((res)=>{return(res.timestamp)}) - await web3.eth.getBlock(blockNum - sampleSize).then((res)=>{return(res.timestamp)})) / sampleSize;
+  
+  return {
+    "blocktime": blockTime,
+    "difficulty": difficulty,
+    "hashrate": difficulty / blockTime,
+  };
+}
 
 
 
