@@ -548,7 +548,7 @@ async function update1hrsDatabase() {
               await got('https://api.ethoprotocol.io/api?module=basic&action=supply')
                 .then((res) => {
                   let bd = JSON.parse(res.body);
-                  jsonarr.data.ETHO.circulating_supply=parseInt(bd.CurrentSupply);
+                  jsonarr.data.ETHO.circulating_supply=parseInt(bd.CirculatingSupply);
                 })
                 .catch((error) => {
                   logger.info("#server.app.udate1hrsDatabase: %s", error);
