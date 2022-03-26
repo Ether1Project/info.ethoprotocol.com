@@ -382,7 +382,7 @@ async function update1hrsDatabase() {
         let etho_devfund2 = 0;
         let etho_masterfund = 0;
         logger.info("#server.app.update1hrsDatabase: Fetching data from exchanges...");
-        await got('https://explorer.ethoprotocol.com/api?module=account&action=balance&address=0xFBd45D6ED333c4ae16d379ca470690E3F8d0D2a2')
+        await got('https://explorer.ethoprotocol.com/api?module=account&action=eth_get_balance&address=0xFBd45D6ED333c4ae16d379ca470690E3F8d0D2a2')
           .then((res) => {
             let bd = JSON.parse(res.body);
             exchange_stex = parseInt(bd.result / 1E18);
@@ -392,7 +392,7 @@ async function update1hrsDatabase() {
             logger.info("#server.app.udate1hrsDatabase: %s", error);
             exchange_stex = prevrow[0].etho_exchange_stex;
           })
-        await got('https://explorer.ethoprotocol.com/api?module=account&action=balance&address=0x548833f13d6bf156260f6e1769c847991c0f6324')
+        await got('https://explorer.ethoprotocol.com/api?module=account&action=eth_get_balance&address=0x548833f13d6bf156260f6e1769c847991c0f6324')
           .then((res) => {
             let bd = JSON.parse(res.body);
             exchange_graviex = parseInt(bd.result / 1E18);
@@ -402,7 +402,7 @@ async function update1hrsDatabase() {
             logger.info("#server.app.udate1hrsDatabase: %s", error);
             exchange_graviex = prevrow[0].etho_exchange_graviex;
           })
-        await got('https://explorer.ethoprotocol.com/api?module=account&action=balance&address=0xccdbbb5d42e631ea6b040dee17fa78232ec4c87e')
+        await got('https://explorer.ethoprotocol.com/api?module=account&action=eth_get_balance&address=0xccdbbb5d42e631ea6b040dee17fa78232ec4c87e')
           .then((res) => {
             let bd = JSON.parse(res.body);
             exchange_mercatox = parseInt(bd.result / 1E18);
@@ -412,7 +412,7 @@ async function update1hrsDatabase() {
             logger.info("#server.app.udate1hrsDatabase: %s", error);
             exchange_mercatox = prevrow[0].etho_exchange_mercatox;
           })
-        await got('https://explorer.ethoprotocol.com/api?module=account&action=balance&address=0xe2c8cbec30c8513888f7a95171ea836f8802d981')
+        await got('https://explorer.ethoprotocol.com/api?module=account&action=eth_get_balance&address=0xe2c8cbec30c8513888f7a95171ea836f8802d981')
           .then((res) => {
             let bd = JSON.parse(res.body);
             etho_devfund = parseInt(bd.result / 1E18);
@@ -422,7 +422,7 @@ async function update1hrsDatabase() {
             logger.info("#server.app.udate1hrsDatabase: %s", error);
             etho_devfund = prevrow[0].etho_devfund;
           })
-        await got('https://explorer.ethoprotocol.com/api?module=account&action=balance&address=0xBA57dFe21F78F921F53B83fFE1958Bbab50F6b46')
+        await got('https://explorer.ethoprotocol.com/api?module=account&action=eth_get_balance&address=0xBA57dFe21F78F921F53B83fFE1958Bbab50F6b46')
           .then((res) => {
             let bd = JSON.parse(res.body);
             etho_devfund2 = parseInt(bd.result / 1E18);
@@ -433,7 +433,7 @@ async function update1hrsDatabase() {
             etho_devfund2 = prevrow[0].etho_devfund2;
           })
         
-        await got('https://explorer.ethoprotocol.com/api?module=account&action=balance&address=0xE19363Ffb51C62bEECd6783A2c9C5bfF5D4679ac')
+        await got('https://explorer.ethoprotocol.com/api?module=account&action=eth_get_balance&address=0xE19363Ffb51C62bEECd6783A2c9C5bfF5D4679ac')
           .then((res) => {
             let bd = JSON.parse(res.body);
             etho_masterfund = parseInt(bd.result / 1E18);
@@ -445,7 +445,7 @@ async function update1hrsDatabase() {
           })
         
         
-        await got('https://explorer.ethoprotocol.com/api?module=account&action=balance&address=0xe82e114833c558496b7d2405584c5a2286b9170e')
+        await got('https://explorer.ethoprotocol.com/api?module=account&action=eth_get_balance&address=0xe82e114833c558496b7d2405584c5a2286b9170e')
           .then((res) => {
             let bd = JSON.parse(res.body);
             exchange_probit = parseInt(bd.result / 1E18);
@@ -542,6 +542,21 @@ async function update1hrsDatabase() {
             if (jsonarr.status.error_code == 0) {
               // we have valid data
               // Here we fetch the position from the CMC server and track it
+              
+              // As long ETHO circulating supply is not fixed
+              // therefore we take it from our API
+              await got('https://api.ethoprotocol.io/api?module=basic&action=supply')
+                .then((res) => {
+                  let bd = JSON.parse(res.body);
+                  jsonarr.data.ETHO.circulating_supply=parseInt(bd.CurrentSupply);
+                })
+                .catch((error) => {
+                  logger.info("#server.app.udate1hrsDatabase: %s", error);
+                  jsonarr.data.ETHO.circulating_supply = prevrow[0].coin_1_marketcap;
+                })
+  
+              logger.info("#server.app.udate1hrsDatabase: %s",jsonarr.data.ETHO.circulating_supply);
+              
               const vgmUrl = 'https://coinmarketcap.com/currencies/ether-1/';
               await got(vgmUrl).then(async (response) => {
                 var rx = /On ([0-9,]*) watchlists/g;

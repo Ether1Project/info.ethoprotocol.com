@@ -272,13 +272,13 @@ router.get('/dash_overview', async function(req, res, next) {
     
             label.push("Dev fund");
             rgbstr.push('rgb(70,248,5)');
-            let devfund = inforows[0].etho_devfund;
+            let devfund = inforows[0].etho_devfund2;
             supply.push(Math.round((100*devfund)/100));
     
             label.push("Master fund");
             rgbstr.push('rgb(248,224,5)');
             let masterfund = inforows[0].etho_masterfund;
-            supply.push(Math.round((100*devfund)/100));
+            supply.push(Math.round((100*masterfund)/100));
     
     
             let nodes_collateral=parseInt(inforows[0].etho_active_gatewaynodes*30000)+ parseInt(inforows[0].etho_active_masternode*15000)+ parseInt(inforows[0].etho_active_servicenodes*5000);
@@ -324,29 +324,6 @@ router.get('/dash_overview', async function(req, res, next) {
         
             }
     
-            let chartobj2 = {
-                type: 'line',
-                data: {
-                    labels:
-                    labels_30d,
-            
-                    datasets:
-                        [{
-                            'label': 'Dev account',
-                            data: devaccount_30d,
-                            backgroundColor: 'rgb(87,190,194)',
-                            fill: true
-                        }]
-            
-                },
-                options: {
-                    responsive: true
-                }
-            };
-    
-            let content2;
-            content2 = "<canvas id='chartjs-2' class='chartjs'></canvas>";
-            content2 += "<script>new Chart(document.getElementById('chartjs-2')," + JSON.stringify(chartobj2) + ");</script>";
     
             // Create chart for dev account
             let devaccount2_30d=[];
@@ -420,7 +397,6 @@ router.get('/dash_overview', async function(req, res, next) {
                 title: 'ETHO | Overview',
                 data: data,
                 chart1: content1,
-                chart2: content2,
                 chart2b: content2b,
                 chart3: content3
             });
@@ -814,7 +790,7 @@ router.get('/dash_richlist', async function(req, res, next) {
             let max = supply;
             let exchange_all=getExchanges(inforows[0]);
             let rich=0;
-            let devfund = inforows[0].etho_devfund;
+            let devfund = inforows[0].etho_devfund2;
     
     
             for (i = 0; i < tablesAsJson.length; i++) {
@@ -1056,11 +1032,11 @@ router.get('/dash_exchanges', async function(req, res, next) {
     pool.query(vsql)
         .then(async (inforows) => {
             let exchange_all=getExchanges(inforows[0]);
-            await got('https://api.ether1.org/api.php?api=chain_summary')
+            await got('https://api.ethoprotocol.io/api?module=basic&action=supply')
                 .then((body)=>{
                     logger.info("Body %s", JSON.parse(body.body)); // Print the json response
                     bd = JSON.parse(body.body);
-                    exchange_percent=Math.round(exchange_all/bd.circulating_supply*10000)/100
+                    exchange_percent=Math.round(exchange_all/bd.CirculatingSupply*10000)/100
             
                 })
                 .catch((error)=>{
@@ -1343,12 +1319,12 @@ router.get('/dash_financial', function(req, res, next) {
     let bd = [];
     
     (async () => {
-        await got('https://api.ether1.org/api.php?api=chain_summary')
+        await got('https://api.ethoprotocol.io/api?module=basic&action=supply')
             .then((body) => {
                 logger.info("Body %s", body.body); // Print the json response
                 bd = JSON.parse(body.body);
-                data.blockheight = MISC_numberFormating(bd.block_height);
-                data.circulatingsupply = MISC_numberFormating(bd.circulating_supply);
+                data.blockheight = MISC_numberFormating(bd.BlockHeight);
+                data.circulatingsupply = MISC_numberFormating(bd.CirculatingSupply);
             })
             .catch((error) => {
                 logger.error('#server.route.dash_financial: Error %s', error);
@@ -1570,12 +1546,12 @@ router.get('/dash_cmctrending', function(req, res, next) {
     
     
     (async () => {
-        await got('https://api.ether1.org/api.php?api=chain_summary')
+        await got('https://api.ethoprotocol.io/api?module=basic&action=supply')
             .then((body) => {
                 logger.info("Body %s", JSON.parse(body.body)); // Print the json response
                 bd = JSON.parse(body.body);
-                data.blockheight = MISC_numberFormating(bd.block_height);
-                data.circulatingsupply = MISC_numberFormating(bd.circulating_supply);
+                data.blockheight = MISC_numberFormating(bd.BlockHeight);
+                data.circulatingsupply = MISC_numberFormating(bd.CirculatingSupply);
             })
             .catch((error) => {
                 logger.error('#server.route.dash_financial: Error %s', error);
