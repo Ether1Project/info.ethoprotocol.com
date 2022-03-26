@@ -256,9 +256,20 @@ router.get('/dash_overview', async function(req, res, next) {
     
             let data = [];
             let label = [];
-    
-            data.supply = MISC_numberFormating(Math.round(inforows[0].coin_1_supply * 100) / 100);
-    
+  
+          await got('https://api.ethoprotocol.io/api?module=basic&action=supply')
+            .then((body) => {
+              logger.info("Body %s", body.body); // Print the json response
+              bd = JSON.parse(body.body);
+              data.blockheight = MISC_numberFormating(bd.BlockHeight);
+              data.supply = MISC_numberFormating(bd.CirculatingSupply);
+            })
+            .catch((error) => {
+              logger.error('#server.route.dash_financial: Error %s', error);
+              data.blockheight = "Not available";
+              data.circulatingsupply = "Not available";
+            })
+          
             let rgbstr = [];
             let supply = [];
             label.push("Wrapped ETHO");
