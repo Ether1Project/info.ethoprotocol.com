@@ -15,7 +15,7 @@ const CoinMarketCap = require('coinmarketcap-api');
 const tabletojson = require('tabletojson').Tabletojson;
 const got = require('got');
 
-const ethofsSDK = require('@ethofs/sdk');
+const ethofsSDK = require('@ethoprotocol/sdk');
 const ethofs = ethofsSDK();
 const { Octokit } = require("@octokit/core");
 
@@ -216,6 +216,17 @@ async function update1hrsDatabase() {
   let wETHO;
   let stats;
   
+  // Reduce database to 720 entries
+  sql = "DELETE FROM info WHERE DATE(date) < (curdate() - INTERVAL 60 DAY)";
+  await pool.query(sql)
+    .then((result) => {
+      logger.info("#server.app.update1hrsdatabase: Reducing DB with %s", result.affectedRows);
+    })
+    .catch(function (error) {
+        logger.error("#server.app.update1hrsdatabase: Error: %s", error);
+      })
+  
+    
   let vsql = "SELECT *,TIMESTAMPDIFF(SECOND, date, UTC_TIMESTAMP()) AS secs FROM info ORDER BY id DESC LIMIT 1";
   
   await pool.query(vsql)
@@ -422,22 +433,20 @@ async function update1hrsDatabase() {
             logger.info("#server.app.udate1hrsDatabase: %s", error);
             etho_devfund = prevrow[0].etho_devfund;
           })
-        await got('https://explorer.ethoprotocol.com/api?module=account&action=eth_get_balance&address=0xBA57dFe21F78F921F53B83fFE1958Bbab50F6b46')
+        await getBalance('0xBA57dFe21F78F921F53B83fFE1958Bbab50F6b46')
           .then((res) => {
-            let bd = JSON.parse(res.body);
-            etho_devfund2 = parseInt(bd.result / 1E18);
+            etho_devfund2 = parseInt(res / 1E18);
             logger.info("Devfund2: %s ETHO", etho_devfund2); // Print the json response
           })
           .catch((error) => {
             logger.info("#server.app.udate1hrsDatabase: %s", error);
             etho_devfund2 = prevrow[0].etho_devfund2;
           })
-        
-        await got('https://explorer.ethoprotocol.com/api?module=account&action=eth_get_balance&address=0xE19363Ffb51C62bEECd6783A2c9C5bfF5D4679ac')
+  
+        await getBalance('0x00C41297cCEbe446AAbc154F32b16aEDE14E50aB')
           .then((res) => {
-            let bd = JSON.parse(res.body);
-            etho_masterfund = parseInt(bd.result / 1E18);
-            logger.info("Devfund: %s ETHO", etho_devfund); // Print the json response
+            etho_masterfund = parseInt(res / 1E18);
+            logger.info("Devfund: %s ETHO", etho_masterfund); // Print the json response
           })
           .catch((error) => {
             logger.info("#server.app.udate1hrsDatabase: %s", error);
@@ -642,6 +651,18 @@ var longIntervalId=setInterval(
   () => update1hrsDatabase(),
   60000*60
 );
+
+async function getBalance(addr) {
+  var balance = web3.eth.getBalance(addr)
+    .then((res)=>{
+      return(res);
+    })
+    .catch((error)=>{
+      logger.error("#app.getBalance: Error %s", error);
+    })
+  return(balance);
+  
+}
 
 async function getNetworkStats(
   sampleSize //!< [in] Larger n give more accurate numbers but with longer latency.

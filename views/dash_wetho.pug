@@ -151,6 +151,47 @@ block content
                                     .m-t-2
                                         p !{chart1_30d}
 
+            .col-md-12.d-flex
+                .card.w-100
+                    .card-body
+                        h4.card-title.text-black wEtho transaction
+                        h6.card-subtitle.m-b-2 Select the time span via tabs
+                        // Nav tabs
+                        ul.nav.nav-tabs(role='tablist')
+                            li.nav-item
+                                a.nav-link.active(data-toggle='tab' href='#tab1_2' role='tab')
+                                    span.hidden-sm-up
+                                        i.ti-layout-grid2-alt
+                                    span.hidden-xs-down 24hr view
+                            li.nav-item
+                                a.nav-link(data-toggle='tab' href='#tab2_2' role='tab')
+                                    span.hidden-sm-up
+                                        i.ti-layout-grid3-alt
+                                    span.hidden-xs-down 7 day view
+                            li.nav-item
+                                a.nav-link(data-toggle='tab' href='#tab3_2' role='tab')
+                                    span.hidden-sm-up
+                                        i.ti-layout-grid4-alt
+                                    span.hidden-xs-down 30 day view
+                        // Tab panes
+
+                        .tab-content.tabcontent-border
+
+                            #tab1_2.tab-pane.active(role='tabpanel')
+                                .info-box
+                                    .m-t-2
+                                        p !{chart3_24hrs}
+
+                            #tab2_2.tab-pane.p-20(role='tabpanel')
+                                .info-box
+                                    .m-t-2
+                                        p !{chart3_7d}
+
+                            #tab3_2.tab-pane.p-20(role='tabpanel')
+                                .info-box
+                                    .m-t-2
+                                        p !{chart3_30d}
+
 
 
 

@@ -4,7 +4,7 @@ const got = require('got');
 const ping = require('ping');
 const checkCertExpiration = require('check-cert-expiration');
 const tabletojson = require('tabletojson').Tabletojson;
-const ethofsSDK = require('@ethofs/sdk');
+const ethofsSDK = require('@ethoprotocol/sdk');
 
 
 var express = require('express');
@@ -324,23 +324,48 @@ router.get('/dash_overview', async function(req, res, next) {
             let content1 = "";
             content1 += "<canvas id='chartjs-1' class='chartjs' width='1540' height='770' style='display: block; height: 385px; width: 770px;'></canvas>";
             content1 += "<script>new Chart(document.getElementById('chartjs-1')," + JSON.stringify(chartobj) + ");</script>";
-    
-            // Create chart for dev account
+  
+          let ref_24hrs=[];
+          if (inforows[lastElement_24hrs]==undefined) {
+            ref_24hrs=inforows[inforows.length-1];
+          } else {
+            ref_24hrs=inforows[lastElement_24hrs-1];
+          }
+  
+          let ref_7d=[];
+          if (inforows[lastElement_7d]==undefined) {
+            ref_7d=inforows[inforows.length-1];
+          } else {
+            ref_7d=inforows[lastElement_7d-1];
+          }
+  
+          let ref_30d=[];
+          if (inforows[lastElement_30d]==undefined) {
+            ref_30d=inforows[inforows.length-1];
+          } else {
+            ref_30d=inforows[lastElement_30d-1];
+          }
+  
+  
+  
+          // Create chart for dev account
             let devaccount_30d=[];
             let labels_30d=[];
             let i;
             for (i = 0; i < lastElement_30d; i++) {
+              if(i<inforows.length) {
                 devaccount_30d[i] = inforows[i].etho_devfund;
                 labels_30d.push(-i + " hr");
-        
+              }
             }
     
     
             // Create chart for dev account
             let devaccount2_30d=[];
             for (i = 0; i < lastElement_30d; i++) {
+              if(i<inforows.length) {
                 devaccount2_30d[i] = inforows[i].etho_devfund2;
-        
+              }
             }
     
             let chartobj2b = {
@@ -372,9 +397,10 @@ router.get('/dash_overview', async function(req, res, next) {
             let labels_7d=[];
     
             for (i = 0; i < lastElement_7d; i++) {
+              if(i<inforows.length) {
                 masteraccount_7d[i] = inforows[i].etho_masterfund;
                 labels_7d.push(-i + " hr");
-        
+              }
             }
     
             let chartobj3 = {
@@ -385,7 +411,7 @@ router.get('/dash_overview', async function(req, res, next) {
             
                     datasets:
                         [{
-                            'label': 'Master account',
+                            'label': 'Master account, ref',
                             data: masteraccount_7d,
                             backgroundColor: 'rgb(87,190,194)',
                             fill: true
@@ -600,16 +626,22 @@ router.get('/dash_wetho', async function(req, res, next) {
             let content2_24hrs = "";
             let content2_7d = "";
             let content2_30d = "";
-    
-            let marketcapList = [];
+            let content3_24hrs = "";
+            let content3_7d = "";
+            let content3_30d = "";
+  
+          let marketcapList = [];
             let marketcapList_7d = [];
             let marketcapList_30d = [];
             let wethoList = [];
             let wethoList_7d = [];
             let wethoList_30d = [];
-    
-    
-            let labels_7d = [];
+          let wethoTransferCount = [];
+          let wethoTransferCount_7d = [];
+          let wethoTransferCount_30d = [];
+  
+  
+          let labels_7d = [];
             let labels_30d = [];
     
             let i;
@@ -618,22 +650,29 @@ router.get('/dash_wetho', async function(req, res, next) {
                     inforows[i].coin_1_marketcap = 0;
             }
             for (i = 0; i < lastElement_24hrs; i++) {
+              if (i < inforows.length) {
                 marketcapList[i] = Math.round(inforows[i].coin_1_quote * inforows[i].wetho_totalSupply / 1E16) / 100;
-                wethoList[i] = Math.round(inforows[i].wetho_totalSupply/1E16) / 100;
+                wethoList[i] = Math.round(inforows[i].wetho_totalSupply / 1E16) / 100;
+                wethoTransferCount[i] = inforows[i].wetho_tranfersCount-2900;
+              }
             }
     
             for (i = 0; i < lastElement_7d; i++) {
+              if (i < inforows.length) {
                 marketcapList_7d[i] = Math.round(inforows[i].coin_1_quote * inforows[i].wetho_totalSupply / 1E16) / 100;
-                wethoList_7d[i] = Math.round(inforows[i].wetho_totalSupply/1E16) / 100;
+                wethoList_7d[i] = Math.round(inforows[i].wetho_totalSupply / 1E16) / 100;
+                wethoTransferCount_7d[i] = inforows[i].wetho_tranfersCount-2900;
                 labels_7d.push(-i + " hr");
+              }
             }
-    
             for (i = 0; i < inforows.length; i++) {
+              if (i < inforows.length) {
                 marketcapList_30d[i] = Math.round(inforows[i].coin_1_quote * inforows[i].wetho_totalSupply / 1E16) / 100;
-                wethoList_30d[i] = Math.round(inforows[i].wetho_totalSupply/1E16) / 100;
+                wethoList_30d[i] = Math.round(inforows[i].wetho_totalSupply / 1E16) / 100;
+                wethoTransferCount_30d[i] = inforows[i].wetho_tranfersCount-2900;
                 labels_30d.push(-i + "hr");
+              }
             }
-    
     
             let chartobj2_24hrs = {
                 type: 'bar',
@@ -756,9 +795,72 @@ router.get('/dash_wetho', async function(req, res, next) {
             // Create charts
             content1_30d += "<canvas id='chartjs-1-30d' class='chartjs'></canvas>";
             content1_30d += "<script>new Chart(document.getElementById('chartjs-1-30d')," + JSON.stringify(chartobj1_30d) + ");</script>";
+  
+          let chartobj3_24hrs = {
+            type: 'bar',
     
-    
-            let dateParts = inforows[0].date;
+            data: {
+              labels:
+                ['Now', '-1hr', '-2hr', '-3hr', '-4hr', '-5hr', '-6hr', '-7hr', '-8hr', '-9hr', '-10hr', '-11hr', '-12hr', '-13hr', '-14hr', '-15hr', '-16hr', '-17hr', '-18hr', '-19hr', '-20hr', '-21hr', '-22hr', '-23hr'],
+              datasets:
+                [{
+                  'label': 'wETHO transaction',
+                  data: wethoTransferCount,
+                  backgroundColor: 'rgb(3,149,248)'
+                }]
+            },
+            options: {
+              responsive: true
+            }
+          };
+  
+          // Create charts
+          content3_24hrs += "<canvas id='chartjs-3_24hrs' class='chartjs'></canvas>";
+          content3_24hrs += "<script>new Chart(document.getElementById('chartjs-3_24hrs')," + JSON.stringify(chartobj3_24hrs) + ");</script>";
+  
+          let chartobj3_7d = {
+            type: 'bar',
+            data: {
+              labels: labels_7d,
+              datasets:
+                [{
+                  'label': 'wETHO transaction count',
+                  data: wethoTransferCount_7d,
+                  backgroundColor: 'rgb(3,149,248)'
+                }]
+      
+            },
+            options: {
+              responsive: true,
+            }
+          };
+          // Create charts
+          content3_7d += "<canvas id='chartjs-3-7d' class='chartjs'></canvas>";
+          content3_7d += "<script>new Chart(document.getElementById('chartjs-3-7d')," + JSON.stringify(chartobj3_7d) + ");</script>";
+  
+          let chartobj3_30d = {
+            type: 'bar',
+            data: {
+              labels: labels_30d,
+              datasets:
+                [{
+                  'label': 'wETHO transaction count',
+                  data: wethoTransferCount_30d,
+                  backgroundColor: 'rgb(3,149,248)'
+                }]
+      
+            },
+            options: {
+              responsive: true,
+            }
+          };
+          // Create charts
+          content3_30d += "<canvas id='chartjs-3-30d' class='chartjs'></canvas>";
+          content3_30d += "<script>new Chart(document.getElementById('chartjs-3-30d')," + JSON.stringify(chartobj3_30d) + ");</script>";
+  
+  
+  
+          let dateParts = inforows[0].date;
             data.date = dateParts + " GMT ";
     
             res.render('dash_wetho', {
@@ -771,7 +873,10 @@ router.get('/dash_wetho', async function(req, res, next) {
                 chart2_24hrs: content2_24hrs,
                 chart2_7d: content2_7d,
                 chart2_30d: content2_30d,
-    
+                chart3_24hrs: content3_24hrs,
+                chart3_7d: content3_7d,
+                chart3_30d: content3_30d,
+  
             });
         })
 })
@@ -923,26 +1028,7 @@ router.get('/dash_ipfs', async function(req, res, next) {
     pool.query(vsql)
         .then(async (inforows) => {
     
-            const {body} = await got('http://api.ether1.org/ethofsapi.php?api=network_stats_archive');
-            bd = JSON.parse(body);
-            console.log(countProperties(bd));
-            let i = 0;
-            let k = 0;
-            let labels = [];
-            let obj;
-    
-            for (key in bd) {
-                if (bd.hasOwnProperty(key)) {
-                    if (!(k % 10)) {
-                        contracts[i] = parseInt(bd[key].activeUploadContracts).toString();
-                        networkStorage[i] = parseInt(bd[key].totalNetworkStorageUsed) / 1E9;
-                        labels.push(parseInt(bd[key].blockNumber));
-                        i = i + 1;
-                    }
-                    k = k + 1;
-                }
-            }
-    
+     
             let ethofs = ethofsSDK(global.config.ETHOSERIAL);
     
             const options = {
@@ -966,51 +1052,6 @@ router.get('/dash_ipfs', async function(req, res, next) {
             data.cost = Math.round(data.cost * 10000) / 10000;
     
     
-            let chartobj1 = {
-                type: 'line',
-                data: {
-                    labels: labels,
-                    datasets:
-                        [{
-                            'label': 'Contracts over time',
-                            data: contracts,
-                            backgroundColor: 'rgb(26,238,26)'
-                        }
-                        ]
-            
-                },
-                options: {
-                    responsive: true
-                }
-            };
-    
-            // Create charts
-            let content1 = "";
-            content1 += "<canvas id='chartjs-1' class='chartjs' width='1540' height='770' style='display: block; height: 385px; width: 770px;'></canvas>";
-            content1 += "<script>new Chart(document.getElementById('chartjs-1')," + JSON.stringify(chartobj1) + ");</script>";
-    
-            let chartobj2 = {
-                type: 'line',
-                data: {
-                    labels: labels,
-                    datasets:
-                        [{
-                            'label': 'Storage in GB over time',
-                            data: networkStorage,
-                            backgroundColor: 'rgb(2,172,250)'
-                        }
-                        ]
-            
-                },
-                options: {
-                    responsive: true
-                }
-            };
-    
-            // Create charts
-            let content2 = "";
-            content2 += "<canvas id='chartjs-2' class='chartjs' width='1540' height='770' style='display: block; height: 385px; width: 770px;'></canvas>";
-            content2 += "<script>new Chart(document.getElementById('chartjs-2')," + JSON.stringify(chartobj2) + ");</script>";
     
             let dateParts = inforows[0].date;
             data.date = dateParts + " GMT ";
@@ -1019,8 +1060,6 @@ router.get('/dash_ipfs', async function(req, res, next) {
                 version: version,
                 title: 'ETHO | IPFS dashboard',
                 data: data,
-                chart1: content1,
-                chart2: content2
             });
         });
 });
@@ -1397,17 +1436,22 @@ router.get('/dash_financial', function(req, res, next) {
                             inforows[i].coin_1_marketcap = 0;
                     }
                     for (i = 0; i < lastElement_24hrs; i++) {
+                      if (i<inforows.length)
                         marketcapList[i] = Math.round(inforows[i].coin_1_quote * inforows[i].coin_1_supply / 1E4) / 100;
                     }
     
                     for (i = 0; i < lastElement_7d; i++) {
+                      if (i < inforows.length) {
                         marketcapList_7d[i] = Math.round(inforows[i].coin_1_quote * inforows[i].coin_1_supply / 1E4) / 100;
                         labels_7d.push(-i + " hr");
+                      }
                     }
     
                     for (i = 0; i < inforows.length; i++) {
+                      if (i < inforows.length) {
                         marketcapList_30d[i] = Math.round(inforows[i].coin_1_quote * inforows[i].coin_1_supply / 1E4) / 100;
                         labels_30d.push(-i + "hr");
+                      }
                     }
     
     
@@ -1685,8 +1729,10 @@ router.get('/dash_cmctrending', function(req, res, next) {
                     let labels_30d=[];
                     
                     for (i = 0; i < lastElement_7d; i++) {
+                      if (i < inforows.length) {
                         cmcrank_7d[i] = inforows[i].coin_1_rank;
                         labels_7d.push(-i + " hr");
+                      }
                     }
                     chartobj = {
                         type: 'line',
@@ -1807,32 +1853,38 @@ router.get('/dash_cmctrending', function(req, res, next) {
                     let cmc_etho_rank_7d = [];
     
                     for (i=0;i<lastElement_7d;i++) {
-                        if (inforows[i].etho_trending==null)
-                            inforows[i].etho_trending=0;
-                        cmc_etho_rank_7d[i]=inforows[i].coin_1_rank;
+                      if (i < inforows.length) {
+                        if (inforows[i].etho_trending == null)
+                          inforows[i].etho_trending = 0;
+                        cmc_etho_rank_7d[i] = inforows[i].coin_1_rank;
+                      }
                     }
     
                     let cmc_fil_rank_7d = [];
                     for (i=0;i<lastElement_7d;i++) {
-                        if (inforows[i].etho_trending==null)
-                            inforows[i].etho_trending=0;
-                        cmc_fil_rank_7d[i]=inforows[i].coin_2_rank;
+                      if (i < inforows.length) {
+                        if (inforows[i].etho_trending == null)
+                          inforows[i].etho_trending = 0;
+                        cmc_fil_rank_7d[i] = inforows[i].coin_2_rank;
+                      }
                     }
     
                     let cmc_sia_rank_7d = [];
                     for (i=0;i<lastElement_7d;i++) {
-                        if (inforows[i].etho_trending==null)
-                            inforows[i].etho_trending=0;
-                        cmc_sia_rank_7d[i]=inforows[i].coin_3_rank;
+                      if (i < inforows.length) {
+                        if (inforows[i].etho_trending == null)
+                          inforows[i].etho_trending = 0;
+                        cmc_sia_rank_7d[i] = inforows[i].coin_3_rank;
+                      }
                     }
-    
                     let cmc_storj_rank_7d = [];
                     for (i=0;i<lastElement_7d;i++) {
-                        if (inforows[i].etho_trending==null)
-                            inforows[i].etho_trending=0;
-                        cmc_storj_rank_7d[i]=inforows[i].coin_4_rank;
+                      if (i < inforows.length) {
+                        if (inforows[i].etho_trending == null)
+                          inforows[i].etho_trending = 0;
+                        cmc_storj_rank_7d[i] = inforows[i].coin_4_rank;
+                      }
                     }
-    
                     chartobj = {
                         type: 'line',
                         data: {
@@ -2076,31 +2128,55 @@ router.get('/dash_nodes', function(req, res, next) {
                         inforows[i].etho_active_servicenodes = 0;
     
                 }
-                for (i = 0; i < lastElement_24hrs; i++) {
-                    gatewayList[i] = inforows[i].etho_active_gatewaynodes-inforows[23].etho_active_gatewaynodes;
-                    masterList[i] = inforows[i].etho_active_masternode-inforows[23].etho_active_masternode;
-                    serviceList[i] = inforows[i].etho_active_servicenodes-inforows[23].etho_active_servicenodes;
-                    lockedList[i] = parseInt(inforows[i].etho_active_gatewaynodes*30000)+ parseInt(inforows[i].etho_active_masternode*15000)+ parseInt(inforows[i].etho_active_servicenodes*5000);
-                    
+  
+              let ref_24hrs=[];
+              if (inforows[lastElement_24hrs]==undefined) {
+                ref_24hrs=inforows[inforows.length-1];
+              } else {
+                ref_24hrs=inforows[lastElement_24hrs-1];
+              }
+  
+              let ref_7d=[];
+                if (inforows[lastElement_7d]==undefined) {
+                  ref_7d=inforows[inforows.length-1];
+                } else {
+                  ref_7d=inforows[lastElement_7d-1];
                 }
+  
+              let ref_30d=[];
+              if (inforows[lastElement_30d]==undefined) {
+                ref_30d=inforows[inforows.length-1];
+              } else {
+                ref_30d=inforows[lastElement_30d-1];
+              }
+  
+              for (i = 0; i < lastElement_24hrs; i++) {
+                gatewayList[i] = inforows[i].etho_active_gatewaynodes-ref_24hrs.etho_active_gatewaynodes;
+                masterList[i] = inforows[i].etho_active_masternode-ref_24hrs.etho_active_masternode;
+                serviceList[i] = inforows[i].etho_active_servicenodes-ref_24hrs.etho_active_servicenodes;
+                lockedList[i] = parseInt(inforows[i].etho_active_gatewaynodes*30000)+ parseInt(inforows[i].etho_active_masternode*15000)+ parseInt(inforows[i].etho_active_servicenodes*5000);
     
-                for (i = 0; i < lastElement_7d; i++) {
-                    gatewayList_7d[i] = inforows[i].etho_active_gatewaynodes-inforows[167].etho_active_gatewaynodes;
-                    masterList_7d[i] = inforows[i].etho_active_masternode-inforows[167].etho_active_masternode;
-                    serviceList_7d[i] = inforows[i].etho_active_servicenodes-inforows[167].etho_active_servicenodes;
+              }
+  
+              for (i = 0; i < lastElement_7d; i++) {
+                    if (i<inforows.length) {
+                    gatewayList_7d[i] = inforows[i].etho_active_gatewaynodes-ref_7d.etho_active_gatewaynodes;
+                    masterList_7d[i] = inforows[i].etho_active_masternode-ref_7d.etho_active_masternode;
+                    serviceList_7d[i] = inforows[i].etho_active_servicenodes-ref_7d.etho_active_servicenodes;
                     lockedList_7d[i] = parseInt(inforows[i].etho_active_gatewaynodes*30000)+ parseInt(inforows[i].etho_active_masternode*15000)+ parseInt(inforows[i].etho_active_servicenodes*5000);
-    
-    
                     labels_7d.push(-i + " hr");
+                    }
                 }
-    
-                for (i = 0; i < inforows.length; i++) {
-                    gatewayList_30d[i] = inforows[i].etho_active_gatewaynodes-inforows[inforows.length-1].etho_active_gatewaynodes;
-                    masterList_30d[i] = inforows[i].etho_active_masternode-inforows[inforows.length-1].etho_active_masternode;
-                    serviceList_30d[i] = inforows[i].etho_active_servicenodes-inforows[inforows.length-1].etho_active_servicenodes;
+  
+               for (i = 0; i < lastElement_30d; i++) {
+                  if (i<inforows.length) {
+                    gatewayList_30d[i] = inforows[i].etho_active_gatewaynodes-ref_30d.etho_active_gatewaynodes;
+                    masterList_30d[i]  = inforows[i].etho_active_masternode-ref_30d.etho_active_masternode;
+                    serviceList_30d[i] = inforows[i].etho_active_servicenodes-ref_30d.etho_active_servicenodes;
                     lockedList_30d[i] = parseInt(inforows[i].etho_active_gatewaynodes*30000)+ parseInt(inforows[i].etho_active_masternode*15000)+ parseInt(inforows[i].etho_active_servicenodes*5000);
     
                     labels_30d.push(-i + "hr");
+                  }
                 }
     
     
@@ -2112,7 +2188,7 @@ router.get('/dash_nodes', function(req, res, next) {
                             ['Now','-1hr','-2hr','-3hr','-4hr','-5hr','-6hr','-7hr','-8hr','-9hr','-10hr','-11hr','-12hr','-13hr','-14hr','-15hr','-16hr','-17hr','-18hr','-19hr','-20hr','-21hr','-22hr','-23hr'],
                         datasets:
                             [{
-                                'label': 'Added nodes in last 24 hrs from ' + inforows[lastElement_24hrs-1].etho_active_gatewaynodes,
+                                'label': 'Added nodes in last 24 hrs from ' + ref_24hrs.etho_active_gatewaynodes,
                                 data: gatewayList,
                                 backgroundColor: 'rgb(91,105,214)',
                                 fill: true
@@ -2132,7 +2208,7 @@ router.get('/dash_nodes', function(req, res, next) {
                         labels: labels_7d,
                         datasets:
                             [{
-                                'label': 'Added nodes in last 7d hrs from ' + inforows[lastElement_7d-1].etho_active_gatewaynodes,
+                                'label': 'Added nodes in last 7d hrs from ' + ref_7d.etho_active_gatewaynodes,
                                 data: gatewayList_7d,
                                 backgroundColor: 'rgb(91,105,214)'
                             }
@@ -2153,7 +2229,7 @@ router.get('/dash_nodes', function(req, res, next) {
                         labels: labels_30d,
                         datasets:
                             [{
-                                'label': 'Added nodes in last 30d from ' + inforows[lastElement_30d-1].etho_active_gatewaynodes,
+                                'label': 'Added nodes in last 30d from ' + ref_30d.etho_active_gatewaynodes,
                                 data: gatewayList_30d,
                                 backgroundColor: 'rgb(91,105,214)'
                             }]
@@ -2175,7 +2251,7 @@ router.get('/dash_nodes', function(req, res, next) {
                             ['Now','-1hr','-2hr','-3hr','-4hr','-5hr','-6hr','-7hr','-8hr','-9hr','-10hr','-11hr','-12hr','-13hr','-14hr','-15hr','-16hr','-17hr','-18hr','-19hr','-20hr','-21hr','-22hr','-23hr'],
                         datasets:
                             [{
-                                'label': 'Added nodes in last 24 hrs from ' + inforows[lastElement_24hrs-1].etho_active_masternode,
+                                'label': 'Added nodes in last 24 hrs from ' + ref_24hrs.etho_active_masternode,
                                 data: masterList,
                                 backgroundColor: 'rgb(74,162,97)',
                                 fill: true
@@ -2195,7 +2271,7 @@ router.get('/dash_nodes', function(req, res, next) {
                         labels: labels_7d,
                         datasets:
                             [{
-                                'label': 'Added nodes in last 7d hrs from ' + inforows[lastElement_7d-1].etho_active_masternode,
+                                'label': 'Added nodes in last 7d hrs from ' + ref_7d.etho_active_masternode,
                                 data: masterList_7d,
                                 backgroundColor: 'rgb(74,162,97)'
                             }
@@ -2216,7 +2292,7 @@ router.get('/dash_nodes', function(req, res, next) {
                         labels: labels_30d,
                         datasets:
                             [{
-                                'label': 'Added nodes in last 30d from ' + inforows[lastElement_30d-1].etho_active_masternode,
+                                'label': 'Added nodes in last 30d from ' + ref_30d.etho_active_masternode,
                                 data: masterList_30d,
                                 backgroundColor: 'rgb(74,162,97)'
                             }]
@@ -2238,7 +2314,7 @@ router.get('/dash_nodes', function(req, res, next) {
                             ['Now','-1hr','-2hr','-3hr','-4hr','-5hr','-6hr','-7hr','-8hr','-9hr','-10hr','-11hr','-12hr','-13hr','-14hr','-15hr','-16hr','-17hr','-18hr','-19hr','-20hr','-21hr','-22hr','-23hr'],
                         datasets:
                             [{
-                                'label': 'Added nodes in last 24 hrs from ' + inforows[lastElement_24hrs-1].etho_active_servicenodes,
+                                'label': 'Added nodes in last 24 hrs from ' + ref_24hrs.etho_active_servicenodes,
                                 data: serviceList,
                                 backgroundColor: 'rgb(87,190,194)',
                                 fill: true
@@ -2258,7 +2334,7 @@ router.get('/dash_nodes', function(req, res, next) {
                         labels: labels_7d,
                         datasets:
                             [{
-                                'label': 'Added nodes in last 7d hrs from ' + inforows[lastElement_7d-1].etho_active_servicenodes,
+                                'label': 'Added nodes in last 7d hrs from ' + ref_7d.etho_active_servicenodes,
                                 data: serviceList_7d,
                                 backgroundColor: 'rgb(87,190,194)'
                             }
@@ -2279,7 +2355,7 @@ router.get('/dash_nodes', function(req, res, next) {
                         labels: labels_30d,
                         datasets:
                             [{
-                                'label': 'Added nodes in last 30d from ' + inforows[lastElement_30d-1].etho_active_servicenodes,
+                                'label': 'Added nodes in last 30d from ' + ref_30d.etho_active_servicenodes,
                                 data: serviceList_30d,
                                 backgroundColor: 'rgb(87,190,194)'
                             }]
@@ -2371,15 +2447,18 @@ router.get('/dash_nodes', function(req, res, next) {
                         inforows[i].etho_activeUploadContracts = 0;
                 }
                 for (i = 0; i < lastElement_24hrs; i++) {
-                    contractList[i] = inforows[i].etho_activeUploadContracts-inforows[23].etho_activeUploadContracts;
+                  if (i<inforows.length)
+                    contractList[i] = inforows[i].etho_activeUploadContracts-ref_24hrs.etho_activeUploadContracts;
                 }
-    
+  
                 for (i = 0; i < lastElement_7d; i++) {
-                    contractList_7d[i] = inforows[i].etho_activeUploadContracts-inforows[167].etho_activeUploadContracts;
+                  if (i<inforows.length)
+                    contractList_7d[i] = inforows[i].etho_activeUploadContracts-ref_7d.etho_activeUploadContracts;
                 }
     
                 for (i = 0; i < inforows.length; i++) {
-                    contractList_30d[i] = inforows[i].etho_activeUploadContracts-inforows[inforows.length-1].etho_activeUploadContracts;
+                  if (i<inforows.length)
+                    contractList_30d[i] = inforows[i].etho_activeUploadContracts-ref_30d.etho_activeUploadContracts;
                 }
     
     
@@ -2391,7 +2470,7 @@ router.get('/dash_nodes', function(req, res, next) {
                             ['Now','-1hr','-2hr','-3hr','-4hr','-5hr','-6hr','-7hr','-8hr','-9hr','-10hr','-11hr','-12hr','-13hr','-14hr','-15hr','-16hr','-17hr','-18hr','-19hr','-20hr','-21hr','-22hr','-23hr'],
                         datasets:
                             [{
-                                'label': 'Number of added contracts in last 24 hrs from ' + inforows[lastElement_24hrs-1].etho_activeUploadContracts,
+                                'label': 'Number of added contracts in last 24 hrs from ' + ref_24hrs.etho_activeUploadContracts,
                                 data: contractList,
                                 backgroundColor: 'rgb(156,252,3)',
                                 fill: true
@@ -2411,7 +2490,7 @@ router.get('/dash_nodes', function(req, res, next) {
                         labels: labels_7d,
                         datasets:
                             [{
-                                'label': 'Number of added contracts in last 7d hrs from ' + inforows[lastElement_7d-1].etho_activeUploadContracts,
+                                'label': 'Number of added contracts in last 7d hrs from ' + ref_7d.etho_activeUploadContracts,
                                 data: contractList_7d,
                                 backgroundColor: 'rgb(156,252,3)'
                             }]
@@ -2431,7 +2510,7 @@ router.get('/dash_nodes', function(req, res, next) {
                         labels: labels_30d,
                         datasets:
                             [{
-                                'label': 'Number of added contracts in last 30d from ' + inforows[lastElement_30d-1].etho_activeUploadContracts,
+                                'label': 'Number of added contracts in last 30d from ' + ref_30d.etho_activeUploadContracts,
                                 data: contractList_30d,
                                 backgroundColor: 'rgb(156,252,3)'
                             }]
@@ -2456,15 +2535,18 @@ router.get('/dash_nodes', function(req, res, next) {
                         inforows[i].etho_activeUploadContracts = 0;
                 }
                 for (i = 0; i < lastElement_24hrs; i++) {
-                    contractList[i] = inforows[i].etho_activeUploadContracts-inforows[23].etho_activeUploadContracts;
+                  if (i<inforows.length)
+                    contractList[i] = inforows[i].etho_activeUploadContracts-ref_24hrs.etho_activeUploadContracts;
                 }
     
                 for (i = 0; i < lastElement_7d; i++) {
-                    contractList_7d[i] = inforows[i].etho_activeUploadContracts-inforows[167].etho_activeUploadContracts;
+                  if (i<inforows.length)
+                    contractList_7d[i] = inforows[i].etho_activeUploadContracts-ref_7d.etho_activeUploadContracts;
                 }
     
-                for (i = 0; i < inforows.length; i++) {
-                    contractList_30d[i] = inforows[i].etho_activeUploadContracts-inforows[inforows.length-1].etho_activeUploadContracts;
+                for (i = 0; i < lastElement_30d; i++) {
+                  if (i<inforows.length)
+                    contractList_30d[i] = inforows[i].etho_activeUploadContracts-ref_30d.etho_activeUploadContracts;
                 }
     
     
@@ -2476,7 +2558,7 @@ router.get('/dash_nodes', function(req, res, next) {
                             ['Now','-1hr','-2hr','-3hr','-4hr','-5hr','-6hr','-7hr','-8hr','-9hr','-10hr','-11hr','-12hr','-13hr','-14hr','-15hr','-16hr','-17hr','-18hr','-19hr','-20hr','-21hr','-22hr','-23hr'],
                         datasets:
                             [{
-                                'label': 'Number of added contracts in last 24 hrs from ' + inforows[lastElement_24hrs-1].etho_activeUploadContracts,
+                                'label': 'Number of added contracts in last 24 hrs from ' + ref_24hrs.etho_activeUploadContracts,
                                 data: contractList,
                                 backgroundColor: 'rgb(156,252,3)',
                                 fill: true
@@ -2496,7 +2578,7 @@ router.get('/dash_nodes', function(req, res, next) {
                         labels: labels_7d,
                         datasets:
                             [{
-                                'label': 'Number of added contracts in last 7d hrs from ' + inforows[lastElement_7d-1].etho_activeUploadContracts,
+                                'label': 'Number of added contracts in last 7d hrs from ' + ref_7d.etho_activeUploadContracts,
                                 data: contractList_7d,
                                 backgroundColor: 'rgb(156,252,3)'
                             }]
@@ -2516,7 +2598,7 @@ router.get('/dash_nodes', function(req, res, next) {
                         labels: labels_30d,
                         datasets:
                             [{
-                                'label': 'Number of added contracts in last 30d from ' + inforows[lastElement_30d-1].etho_activeUploadContracts,
+                                'label': 'Number of added contracts in last 30d from ' + ref_30d.etho_activeUploadContracts,
                                 data: contractList_30d,
                                 backgroundColor: 'rgb(156,252,3)'
                             }]
@@ -2534,9 +2616,11 @@ router.get('/dash_nodes', function(req, res, next) {
                 let master_30d=[];
                 let service_30d=[];
                 for (i = 0; i < lastElement_30d; i++) {
-                    gateway_30d[i] = inforows[i].etho_gatewaynode_reward/10;
-                    master_30d[i] = inforows[i].etho_masternode_reward/10;
-                    service_30d[i] = inforows[i].etho_servicenode_reward/10;
+                  if (i < inforows.length) {
+                    gateway_30d[i] = inforows[i].etho_gatewaynode_reward / 10;
+                    master_30d[i] = inforows[i].etho_masternode_reward / 10;
+                    service_30d[i] = inforows[i].etho_servicenode_reward / 10;
+                  }
                 }
     
     
