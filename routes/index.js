@@ -257,7 +257,7 @@ router.get('/dash_overview', async function(req, res, next) {
             let data = [];
             let label = [];
   
-          await got('https://api.ethoprotocol.io/api?module=basic&action=supply')
+          await got('https://api.ethoprotocol.com/api?module=basic&action=supply')
             .then((body) => {
               logger.info("Body %s", body.body); // Print the json response
               bd = JSON.parse(body.body);
@@ -267,10 +267,21 @@ router.get('/dash_overview', async function(req, res, next) {
             .catch((error) => {
               logger.error('#server.route.dash_financial: Error %s', error);
               data.blockheight = "Not available";
-              data.circulatingsupply = "Not available";
+              data.supply = "Not available";
             })
-          
-            let rgbstr = [];
+            await got('https://api.ethoprotocol.com/api?module=basic&action=totalsupply')
+              .then((body) => {
+                logger.info("Body %s", body.body); // Print the json response
+                bd = JSON.parse(body.body);
+                data.totalsupply = MISC_numberFormating(bd.TotalSupply);
+              })
+              .catch((error) => {
+                logger.error('#server.route.dash_financial: Error %s', error);
+                data.blockheight = "Not available";
+                data.totalsupply = "Not available";
+              })
+  
+          let rgbstr = [];
             let supply = [];
             label.push("Wrapped ETHO");
             rgbstr.push('rgb(2,84,248)');
@@ -297,7 +308,7 @@ router.get('/dash_overview', async function(req, res, next) {
             rgbstr.push('rgb(239,66,127)');
             supply.push(Math.round((100*nodes_collateral)/100));
     
-            let remain=Math.round(100*(inforows[0].coin_1_supply-inforows[0].wetho_totalSupply/1E18-exchange_all-inforows[0].etho_devfund-inforows[0].etho_masterfund-nodes_collateral))/100;
+            let remain=Math.round(100*(inforows[0].coin_1_totalsupply-inforows[0].wetho_totalSupply/1E18-exchange_all-inforows[0].etho_devfund-inforows[0].etho_masterfund-nodes_collateral))/100;
             
             label.push("HODL");
             rgbstr.push('rgb(7,7,7)');
@@ -1279,88 +1290,6 @@ router.get('/dash_google', async function(req, res, next) {
 
 });
 
-router.get('/dash_health', async function(req, res, next) {
-    var currency;
-    var title;
-    
-    
-    logger.info("#server.routes.index.get.dash_health");
-    
-    let vsql = "SELECT * FROM info ORDER BY id DESC LIMIT 1";
-    
-    pool.query(vsql)
-        .then(async (inforows) => {
-            
-            let server = ["explorer.ethoprotocol.com", "explorer2.ethoprotocol.com", "info.ethoprotocol.com", "www.ethoprotocol.com", "nodes.ethoprotocol.com", "richlist.ethoprotocol.com", "uploads.ethoprotocol.com", "wallet.ethoprotocol.com", "stats.ethoprotocol.com"];
-            let data = [];
-            let i;
-    
-    
-            for (i = 0; i < server.length; i++) {
-                await ping.promise.probe(server[i])
-                    .then(async (pingres) => {
-                        await got('https://' + server[i])
-                            .then(async (response) => {
-                                logger.info("#server.routes.index.get.dash_health: Pinging server %s", server[i]);
-                                await (async function () {
-                                    try {
-                                        logger.info("#server.routes.index.get.dash_health: Cert checking server %s", server[i]);
-    
-                                        const {daysLeft, host, port} = await checkCertExpiration(server[i]);
-                                        
-                                        data.push({
-                                            servername: server[i],
-                                            up: false,
-                                            certdate: daysLeft + " days left",
-                                            latency: pingres.time
-                                        });
-                                    } catch (err) {
-                                        data.push({
-                                            servername: server[i],
-                                            up: true,
-                                            certdate: err.name,
-                                            latency: pingres.time
-                                        });
-                                        
-                                    }
-                                })();
-                                
-                            })
-                            .catch((error) => {
-                                data.push({
-                                    servername: server[i],
-                                    up: true,
-                                    certdate: error,
-                                    latency: pingres.time
-                                })
-                                
-                                
-                            })
-                    })
-                    .catch((error) => {
-                        data.push({
-                            servername: server[i],
-                            up: true,
-                            certdate: error,
-                            latency: 0
-                        })
-                    })
-            }
-            logger.info("#server.routes.index.get.dash_health: Render page");
-    
-            let dateParts = inforows[0].date;
-            data.date = dateParts + " GMT ";
-            
-            res.render('dash_health', {
-                version: version,
-                title: 'ETHO | Coin dashboard',
-                data: data
-            });
-        })
-        .catch((error)=>{
-            logger.error("#server..routes.index.get.dash_health: Error: %s", error);
-        })
-});
 
 
 /* GET home page. */
@@ -2042,7 +1971,7 @@ router.get('/dash_nodes', function(req, res, next) {
     
     (async () => {
         
-        const ethofsSDK = require('@ethofs/sdk');
+        const ethofsSDK = require('@ethoprotocol/sdk');
         const ethofs = ethofsSDK();
         
         let stats=[];

@@ -29,26 +29,34 @@ block content
               canvas#canvasOne(width=1000, height=500)
 
       .col-lg-6.col-xlg-12.d-flex.align-items-stretch
-        .info-box.h-100.d-inline-block
-          .d-flex.flex-wrap
-            div
-              h4.text-black About this site
-          .m-t-2
-            div
-              p We serve data at Your fingertips. Please use it to generate news about the ETHO protocol.
-              | All data here is updated on hourly basis. Just snapshot it and share the news with the world.
-              | In future You can even subsribe to events and get informed via a news flash if any of the indicators show extra ordinary activity.
-            div
-              p
-        .info-box.h-100.d-inline-block
+        .row
+          .col-sm-6
+            .info-box.h-100.d-inline-block
+              .d-flex.flex-wrap
+                div
+                  h4.text-black About this site
+              .m-t-2
+                div
+                  p We serve data at Your fingertips. Please use it to generate news about the ETHO protocol.
+                  | All data here is updated on hourly basis. Just snapshot it and share the news with the world.
+                  | In future You can even subsribe to events and get informed via a news flash if any of the indicators show extra ordinary activity.
+                div
+                  p
+          .col-sm-6
+            .info-box.h-100.d-inline-block
 
-          .d-flex.flex-wrap
-            div
-              h4.text-black What's new in #{version}
-          .m-t-2
-            div
-              ul
-                li Aligned with 2.0.0 Phoenix release and infrastructure
+              .d-flex.flex-wrap
+                div
+                  h4.text-black What's new in #{version}
+              .m-t-2
+                div
+                  ul
+                    li Updated entry page with CMC ticker
+                    li Updated circulating supply and adjusted monetary policy
+                    li Updated richlist
+                  script(type='text/javascript' src='https://files.coinmarketcap.com/static/widget/currency.js')
+                  .coinmarketcap-currency-widget(data-currencyid='3452' data-base='USD' data-secondary='' data-ticker='true' data-rank='true' data-marketcap='true' data-volume='true' data-statsticker='true' data-stats='USD')
+
 
 
 

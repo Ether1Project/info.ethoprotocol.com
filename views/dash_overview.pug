@@ -29,6 +29,26 @@ block content
                         span.progress-description.text-white  ETHO
                     // /.info-box-content
                 // /.info-box
+            .col-lg-3.col-sm-6.col-xs-12
+                .info-box.bg-blue.text-white
+                    span.info-box-icon.bg-transparent
+                        i.ti-wallet.text-white
+                    .info-box-content
+                        h6.info-box-text.text-white ETHO total supply
+                        h1.text-white= data.totalsupply
+                        span.progress-description.text-white  ETHO
+                    // /.info-box-content
+                // /.info-box
+            .col-md-6.d-flex
+                .card.w-100
+                    .card-body
+                        h4.card-title.text-black How circulating supply is defined
+                        .info-box
+                            .m-t-2
+                                p The total supply is defined as anything the blockchain has generated. As ETHO protocol will continue to pay a mining reward, a dev wallet reward, and also the node reward
+                                | It is expected that the max total emission will be 81M + 3% yearly inflation.
+                                p the Circulating supply is total supply minus dev wallet and then staked ETHO.
+
         // /.col
         // /.row
         // Main row
@@ -64,7 +84,7 @@ block content
                         h4.card-title.text-black Monetary policy
                             .info-box
                                 .m-t-2
-                                    img(src='/dist/img/financial_policy_3.png', width='100%')
+                                    img(src='/dist/img/financial_policy_4.png', width='100%')
 
 
 

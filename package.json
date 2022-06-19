@@ -6,7 +6,7 @@
     "start": "node ./bin/www"
   },
   "dependencies": {
-    "@ethoprotocol/sdk": "file:../ethofs-sdk",
+    "@ethoprotocol/sdk": "0.0.2",
     "@octokit/core": "^3.4.0",
     "bcryptjs": "^2.4.3",
     "bootstrap": "^4.3.1",

@@ -228,7 +228,7 @@ async function update1hrsDatabase() {
   
     
   let vsql = "SELECT *,TIMESTAMPDIFF(SECOND, date, UTC_TIMESTAMP()) AS secs FROM info ORDER BY id DESC LIMIT 1";
-  
+  logger.info("#server.app.update1hrsdatabase: %s", vsql);
   await pool.query(vsql)
     .then(async (prevrow) => {
       logger.info('#server.app.update1hrsDatabase: Timeout %s', prevrow[0].secs);
@@ -319,7 +319,7 @@ async function update1hrsDatabase() {
         
         // Fetch node stats
         logger.info("#server.app.update1hrsDatabase: Fetching network stats ...");
-        stats= await got('https://api.ethoprotocol.com/ethofsapi.php?api=network_stats')
+        stats= await got('https://api.ethoprotocol.com/api?module=basic&action=network_stats')
           .then((res) => {
             let result = JSON.parse(res.body);
             console.log(result);
@@ -497,7 +497,7 @@ async function update1hrsDatabase() {
           
           const page = await browser.newPage();
           
-          await page.goto('http://144.91.93.170/', {
+          await page.goto('https://richlist.ethoprotocol.com', {
             waitUntil: 'networkidle0',
           })
             .then(async () => {
@@ -513,14 +513,25 @@ async function update1hrsDatabase() {
                     case '0x548833f13d6bf156260f6e1769c847991c0f6324':
                     case '0xccdbbb5d42e631ea6b040dee17fa78232ec4c87e':
                     case '0xe2c8cbec30c8513888f7a95171ea836f8802d981':
+                      // Probit wallet 2
                     case '0xe82e114833c558496b7d2405584c5a2286b9170e':
                     case '0x2edfef4716612b705993c73e69728beb6e28c57f':
+                      // ERC20
+                    case '0x370f083A3c4794DDBb49cfB4E7C7e09B37d57545':
+                      // BEP20
+                    case '0xcC00694b3D51A53b8d2a96285496675cdbeD97fA':
+                      // New dev fund
+                    case '0xBA57dFe21F78F921F53B83fFE1958Bbab50F6b46':
+                      // STEX
+                    case '0xFBd45D6ED333c4ae16d379ca470690E3F8d0D2a2':
+                      // Probit
+                    case '0x930e5e100489069B088e6E2f26f4CB17de4be298':
                       break;
                     default:
                       etho_richlist.push({
                         add: tablesAsJson[0][i].Address.slice(0, 42),
-                        bal: parseInt(tablesAsJson[0][i]['Balance (ETHO))'].replace(/,/g, '')),
-                        li: tablesAsJson[0][i]['Last In'],
+                        bal: parseInt(tablesAsJson[0][i]['Balance (ETHO)'].replace(/,/g, '')),
+                        li: tablesAsJson[0][i]['First In'],
                         lo: tablesAsJson[0][i]['Last Out']
                       });
                       break;
@@ -554,17 +565,29 @@ async function update1hrsDatabase() {
               
               // As long ETHO circulating supply is not fixed
               // therefore we take it from our API
-              await got('https://api.ethoprotocol.io/api?module=basic&action=supply')
+              await got('https://api.ethoprotocol.com/api?module=basic&action=supply')
                 .then((res) => {
                   let bd = JSON.parse(res.body);
                   jsonarr.data.ETHO.circulating_supply=parseInt(bd.CirculatingSupply);
                 })
                 .catch((error) => {
                   logger.info("#server.app.udate1hrsDatabase: %s", error);
-                  jsonarr.data.ETHO.circulating_supply = prevrow[0].coin_1_marketcap;
+                  jsonarr.data.ETHO.circulating_supply = prevrow[0].coin_1_supply;
                 })
   
               logger.info("#server.app.udate1hrsDatabase: %s",jsonarr.data.ETHO.circulating_supply);
+  
+              await got('https://api.ethoprotocol.com/api?module=basic&action=totalsupply')
+                .then((res) => {
+                  let bd = JSON.parse(res.body);
+                  jsonarr.data.ETHO.total_supply=parseInt(bd.TotalSupply);
+                })
+                .catch((error) => {
+                  logger.info("#server.app.udate1hrsDatabase: %s", error);
+                  jsonarr.data.ETHO.total_supply = prevrow[0].coin_1_totalsupply;
+                })
+  
+              logger.info("#server.app.udate1hrsDatabase: %s",jsonarr.data.ETHO.total_supply);
               
               const vgmUrl = 'https://coinmarketcap.com/currencies/ether-1/';
               await got(vgmUrl).then(async (response) => {
@@ -585,7 +608,7 @@ async function update1hrsDatabase() {
                       }
                     }
                     logger.info("CMC Position: %s", pos);
-                    sql = "INSERT INTO info (coin_1_id, coin_1_name, coin_1_symbol, coin_1_rank, coin_1_markets, coin_1_supply, coin_1_quote, coin_1_percent1d, coin_1_percent7d, coin_1_percent30d,  " +
+                    sql = "INSERT INTO info (coin_1_id, coin_1_name, coin_1_symbol, coin_1_rank, coin_1_markets, coin_1_supply, coin_1_totalsupply, coin_1_quote, coin_1_percent1d, coin_1_percent7d, coin_1_percent30d,  " +
                       "coin_2_id, coin_2_name, coin_2_symbol, coin_2_rank, coin_2_markets, coin_2_supply, coin_2_quote, coin_2_percent1d, coin_2_percent7d, coin_2_percent30d, " +
                       "coin_3_id, coin_3_name, coin_3_symbol, coin_3_rank, coin_3_markets, coin_3_supply, coin_3_quote, coin_3_percent1d, coin_3_percent7d, coin_3_percent30d, " +
                       "coin_4_id, coin_4_name, coin_4_symbol, coin_4_rank, coin_4_markets, coin_4_supply, coin_4_quote, coin_4_percent1d, coin_4_percent7d, coin_4_percent30d, " +
@@ -597,13 +620,13 @@ async function update1hrsDatabase() {
                       "etho_gatewaynode_reward, etho_masternode_reward, etho_servicenode_reward, " +
                       "wetho_totalSupply, wetho_tranfersCount, wetho_holdersCount, " +
                       "socialDiscord_members, etho_masterfund, etho_devfund2, date) VALUES ("
-                      + jsonarr.data.ETHO.id + ",'" + jsonarr.data.ETHO.name + "','" + jsonarr.data.ETHO.symbol + "', " + jsonarr.data.ETHO.cmc_rank + ", " + jsonarr.data.ETHO.num_market_pairs + ", " + jsonarr.data.ETHO.circulating_supply + ", " + jsonarr.data.ETHO.quote.USD.price + ", " + Math.round(jsonarr.data.ETHO.quote.USD.percent_change_24h * 100) + ", " + Math.round(jsonarr.data.ETHO.quote.USD.percent_change_7d * 100) + ", " + Math.round(jsonarr.data.ETHO.quote.USD.percent_change_30d * 100) + ", " +
+                      + jsonarr.data.ETHO.id + ",'" + jsonarr.data.ETHO.name + "','" + jsonarr.data.ETHO.symbol + "', " + jsonarr.data.ETHO.cmc_rank + ", " + jsonarr.data.ETHO.num_market_pairs + ", " + jsonarr.data.ETHO.circulating_supply + ", " + jsonarr.data.ETHO.total_supply+ ", " + jsonarr.data.ETHO.quote.USD.price + ", " + Math.round(jsonarr.data.ETHO.quote.USD.percent_change_24h * 100) + ", " + Math.round(jsonarr.data.ETHO.quote.USD.percent_change_7d * 100) + ", " + Math.round(jsonarr.data.ETHO.quote.USD.percent_change_30d * 100) + ", " +
                       +jsonarr.data.FIL.id + ",'" + jsonarr.data.FIL.name + "','" + jsonarr.data.FIL.symbol + "', " + jsonarr.data.FIL.cmc_rank + ", " + jsonarr.data.FIL.num_market_pairs + ", " + jsonarr.data.FIL.circulating_supply + ", " + jsonarr.data.FIL.quote.USD.price + "," + Math.round(jsonarr.data.FIL.quote.USD.percent_change_24h * 100) + ", " + Math.round(jsonarr.data.FIL.quote.USD.percent_change_7d * 100) + ", " + Math.round(jsonarr.data.FIL.quote.USD.percent_change_30d * 100) + ", " +
                       +jsonarr.data.SC.id + ",'" + jsonarr.data.SC.name + "','" + jsonarr.data.SC.symbol + "', " + jsonarr.data.SC.cmc_rank + ", " + jsonarr.data.SC.num_market_pairs + ", " + jsonarr.data.SC.circulating_supply + ", " + jsonarr.data.SC.quote.USD.price + "," + Math.round(jsonarr.data.SC.quote.USD.percent_change_24h * 100) + ", " + Math.round(jsonarr.data.SC.quote.USD.percent_change_7d * 100) + ", " + Math.round(jsonarr.data.SC.quote.USD.percent_change_30d * 100) + ", " +
                       +jsonarr.data.STORJ.id + ",'" + jsonarr.data.STORJ.name + "','" + jsonarr.data.STORJ.symbol + "', " + jsonarr.data.STORJ.cmc_rank + ", " + jsonarr.data.STORJ.num_market_pairs + ", " + jsonarr.data.STORJ.circulating_supply + ", " + jsonarr.data.STORJ.quote.USD.price + "," + Math.round(jsonarr.data.STORJ.quote.USD.percent_change_24h * 100) + ", " + Math.round(jsonarr.data.STORJ.quote.USD.percent_change_7d * 100) + ", " + Math.round(jsonarr.data.STORJ.quote.USD.percent_change_30d * 100) + ", " +
                       pos + "," + etho_watchlist + "," +
-                      stats.activeUploadContracts + "," + stats.totalNetworkStorageUsed + "," + stats.networkStorageAvailable + "," +
-                      stats.active_gatewaynodes + "," + stats.active_masternodes + "," + stats.active_servicenodes + "," +
+                      stats.activeUploadContracts + "," + stats.totalNetworkStorageUsed + "," + stats.networkStorageAvailable + ",'" +
+                      stats.active_gatewaynodes + "','" + stats.active_masternodes + "','" + stats.active_servicenodes + "'," +
                       hashrate + "," + difficulty + "," +
                       exchange_kucoin + "," + exchange_stex + "," + exchange_graviex + "," + exchange_mercatox + "," + exchange_probit + "," + etho_devfund + ",'" + JSON.stringify(etho_richlist) + "'," + Math.round(stats.gatewaynode_reward * 10) + "," + Math.round(stats.masternode_reward * 10) + "," + Math.round(stats.servicenode_reward * 10) + ",'" +
                       wETHO.totalSupply + "'," + wETHO.transfersCount + "," + wETHO.holdersCount + "," +
