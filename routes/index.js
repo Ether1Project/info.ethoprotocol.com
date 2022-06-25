@@ -1449,8 +1449,11 @@ router.get('/dash_financial', function(req, res, next) {
                     inforows[0].coin_2_quote = Math.trunc(inforows[0].coin_2_quote * 10000) / 10000;
                     inforows[0].coin_3_quote = Math.trunc(inforows[0].coin_3_quote * 10000) / 10000;
                     inforows[0].coin_4_quote = Math.trunc(inforows[0].coin_4_quote * 10000) / 10000;
-                    
-                    inforows[0].coin_1_marketcap = Math.round(inforows[0].coin_1_quote*inforows[0].coin_1_supply/1E4) /100 + "MUSD";
+  
+                    inforows[0].coin_1_marketcap = Math.round(inforows[0].coin_1_quote*inforows[0].coin_1_supply/1E4) /100 ;
+                    inforows[0].coin_2_marketcap = Math.round(inforows[0].coin_2_quote*inforows[0].coin_2_supply/1E4) /100 ;
+                    inforows[0].coin_3_marketcap = Math.round(inforows[0].coin_3_quote*inforows[0].coin_3_supply/1E4) /100 ;
+                    inforows[0].coin_4_marketcap = Math.round(inforows[0].coin_4_quote*inforows[0].coin_4_supply/1E4) /100 ;
                     inforows[0].coin_1_percent1d = Math.round(inforows[0].coin_1_percent1d/100);
                     inforows[0].coin_1_percent30d = Math.round(inforows[0].coin_1_percent30d/100);
                     inforows[0].coin_2_percent1d = Math.round(inforows[0].coin_2_percent1d/100);
@@ -1469,7 +1472,11 @@ router.get('/dash_financial', function(req, res, next) {
                     inforows[0].norm_coin_2_supply = Math.round(10*inforows[0].coin_2_supply/inforows[0].coin_1_supply)/10;
                     inforows[0].norm_coin_3_supply = Math.round(10*inforows[0].coin_3_supply/inforows[0].coin_1_supply)/10;
                     inforows[0].norm_coin_4_supply = Math.round(10*inforows[0].coin_4_supply/inforows[0].coin_1_supply)/10;
-
+  
+                    inforows[0].norm_coin_1_marketcap = Math.round(10*inforows[0].coin_1_marketcap/inforows[0].coin_1_marketcap)/10;
+                    inforows[0].norm_coin_2_marketcap = Math.round(10*inforows[0].coin_2_marketcap/inforows[0].coin_1_marketcap)/10;
+                    inforows[0].norm_coin_3_marketcap = Math.round(10*inforows[0].coin_3_marketcap/inforows[0].coin_1_marketcap)/10;
+                    inforows[0].norm_coin_4_marketcap = Math.round(10*inforows[0].coin_4_marketcap/inforows[0].coin_1_marketcap)/10;
                     let dateParts = inforows[0].date;
                     data.date=dateParts+ " GMT ";
                     

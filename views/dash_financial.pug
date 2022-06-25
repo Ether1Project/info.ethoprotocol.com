@@ -23,7 +23,7 @@ block content
             .col-lg-3.col-sm-6.col-xs-12
                 .info-box.bg-darkblue
                     span.info-box-icon.bg-transparent
-                        i.ti-layout-grid3-alt.text-white
+                        i.ti-bar-chart.text-white
                     .info-box-content
                         h6.info-box-text.text-white ETHO blockheight
                         h1.text-white= data.blockheight
@@ -42,6 +42,13 @@ block content
                     // /.info-box-content
                 // /.info-box
             // /.col
+            .col-md-6.d-flex
+                .card.w-100
+                    .card-body.bg-white
+                        h4.card-title.text-black How we calculate the market cap
+                        p.card-text The market cap we are using is the fully diluted market cap as it includes all coins available as per total supply.
+
+        .row
             .col-lg-3.col-sm-6.col-xs-12
                 .info-box.bg-aqua
                     span.info-box-icon.bg-transparent
@@ -78,12 +85,12 @@ block content
                         // Nav tabs
                         ul.nav.nav-tabs(role='tablist')
                             li.nav-item
-                                a.nav-link.active(data-toggle='tab' href='#tab1' role='tab')
+                                a.nav-link(data-toggle='tab' href='#tab1' role='tab')
                                     span.hidden-sm-up
                                         i.ti-layout-grid2-alt
                                     span.hidden-xs-down 24hr view
                             li.nav-item
-                                a.nav-link(data-toggle='tab' href='#tab2' role='tab')
+                                a.nav-link.active(data-toggle='tab' href='#tab2' role='tab')
                                     span.hidden-sm-up
                                         i.ti-layout-grid3-alt
                                     span.hidden-xs-down 7 day view
@@ -123,7 +130,8 @@ block content
 
 
         // Small boxes (Stat box)
-        h3 Price Competing coins
+        h2 Competing coins
+        h3 Price per coin
         .row
             .col-lg-3.col-sm-6.col-xs-12
                 .info-box.bg-darkblue.text-white
@@ -150,6 +158,7 @@ block content
                     // /.info-box-content
                 // /.info-box
             // /.col
+        .row
             .col-lg-3.col-sm-6.col-xs-12
                 .info-box.bg-aqua
                     span.info-box-icon.bg-transparent
@@ -177,7 +186,7 @@ block content
                 // /.info-box
             // /.col
         // /.row
-        h3 Supply Competing coins
+        h3 Supply per coin
         .row
             .col-lg-3.col-sm-6.col-xs-12
                 .info-box.bg-darkblue.text-white
@@ -232,5 +241,67 @@ block content
             // /.col
         // /.row
 
+        // /.row
+        h3 Market cap per coin
+        .row
+            .col-lg-3.col-sm-6.col-xs-12
+                .info-box.bg-darkblue.text-white
+                    span.info-box-icon.bg-transparent
+                        i.ti-settings
+                    .info-box-content
+                        h6.info-box-text.text-white ETHO marketcap
+                        h2.text-white= db.coin_1_marketcap
+                        | MUSD
+
+                        span.progress-description.text-white 1
+                            | x times ETHO
+                    // /.info-box-content
+                // /.info-box
+            // /.col
+            .col-lg-3.col-sm-6.col-xs-12
+                .info-box.bg-green.text-white
+                    span.info-box-icon.bg-transparent
+                        i.ti-settings
+                    .info-box-content
+                        h6.info-box-text.text-white Filecoin marketcap
+                        h2.text-white= db.coin_2_marketcap
+                        | MUSD
+
+                        span.progress-description.text-white= db.norm_coin_2_marketcap
+                            | x times ETHO
+
+                    // /.info-box-content
+                // /.info-box
+            // /.col
+            .col-lg-3.col-sm-6.col-xs-12
+                .info-box.bg-aqua
+                    span.info-box-icon.bg-transparent
+                        i.ti-settings
+                    .info-box-content
+                        h6.info-box-text.text-white Sia coin marketcap
+                        h2.text-white= db.coin_3_marketcap
+                        | MUSD
+                        span.progress-description.text-white= db.norm_coin_3_marketcap
+                            | x times ETHO
+
+                    // /.info-box-content
+                // /.info-box
+            // /.col
+            .col-lg-3.col-sm-6.col-xs-12
+                .info-box.bg-orange
+                    span.info-box-icon.bg-transparent
+                        i.ti-settings
+                    .info-box-content
+                        h6.info-box-text.text-white STORJ marketcap
+                        h2.text-white= db.coin_4_marketcap
+                        | MUSD
+
+                        span.progress-description.text-white= db.norm_coin_4_marketcap
+                            | x times ETHO
+
+                    // /.info-box-content
+                // /.info-box
+            // /.col
+        // /.row
 
     // /.content
