@@ -1093,7 +1093,7 @@ router.get('/dash_exchanges', async function(req, res, next) {
     pool.query(vsql)
         .then(async (inforows) => {
             let exchange_all=getExchanges(inforows[0]);
-            await got('https://api.ethoprotocol.io/api?module=basic&action=supply')
+            await got('https://api.ethoprotocol.com/api?module=basic&action=supply')
                 .then((body)=>{
                     logger.info("Body %s", JSON.parse(body.body)); // Print the json response
                     bd = JSON.parse(body.body);
@@ -1298,7 +1298,19 @@ router.get('/dash_financial', function(req, res, next) {
     let bd = [];
     
     (async () => {
-        await got('https://api.ethoprotocol.io/api?module=basic&action=supply')
+      await got('https://api.ethoprotocol.com/api?module=basic&action=totalsupply')
+        .then((body) => {
+          logger.info("Body %s", body.body); // Print the json response
+          bd = JSON.parse(body.body);
+          data.totalsupply = MISC_numberFormating(bd.TotalSupply);
+        })
+        .catch((error) => {
+          logger.error('#server.route.dash_financial: Error %s', error);
+          data.blockheight = "Not available";
+          data.totalsupply = "Not available";
+        })
+  
+      await got('https://api.ethoprotocol.com/api?module=basic&action=supply')
             .then((body) => {
                 logger.info("Body %s", body.body); // Print the json response
                 bd = JSON.parse(body.body);
@@ -1537,7 +1549,7 @@ router.get('/dash_cmctrending', function(req, res, next) {
     
     
     (async () => {
-        await got('https://api.ethoprotocol.io/api?module=basic&action=supply')
+        await got('https://api.ethoprotocol.com/api?module=basic&action=supply')
             .then((body) => {
                 logger.info("Body %s", JSON.parse(body.body)); // Print the json response
                 bd = JSON.parse(body.body);

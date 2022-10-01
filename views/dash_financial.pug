@@ -36,8 +36,8 @@ block content
                     span.info-box-icon.bg-transparent
                         i.ti-wallet.text-white
                     .info-box-content
-                        h6.info-box-text.text-white ETHO circulating supply
-                        h1.text-white= data.circulatingsupply
+                        h6.info-box-text.text-white ETHO total supply
+                        h1.text-white= data.totalsupply
                         span.progress-description.text-white  ETHO
                     // /.info-box-content
                 // /.info-box
@@ -54,7 +54,7 @@ block content
                     span.info-box-icon.bg-transparent
                         i.ti-bar-chart
                     .info-box-content
-                        h6.info-box-text.text-white ETHO current Price
+                        h6.info-box-text.text-white ETHO current Price (USD)
                         h1.text-white= db.coin_1_quote
                         span.progress-description.text-white= db.coin_1_percent1d
                             | % in 1 Day
@@ -66,7 +66,7 @@ block content
                     span.info-box-icon.bg-transparent
                         i.ti-money
                     .info-box-content
-                        h6.info-box-text.text-white ETHO market cap
+                        h6.info-box-text.text-white ETHO market cap (MUSD)
                         h1.text-white= db.coin_1_marketcap
                         span.progress-description.text-white= db.coin_1_percent30d
                             | % in 30 Days
@@ -158,7 +158,6 @@ block content
                     // /.info-box-content
                 // /.info-box
             // /.col
-        .row
             .col-lg-3.col-sm-6.col-xs-12
                 .info-box.bg-aqua
                     span.info-box-icon.bg-transparent

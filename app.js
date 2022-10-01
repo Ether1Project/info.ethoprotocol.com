@@ -14,6 +14,7 @@ var logger = require("./logger");
 const CoinMarketCap = require('coinmarketcap-api');
 const tabletojson = require('tabletojson').Tabletojson;
 const got = require('got');
+const cheerio = require('cheerio');
 
 const ethofsSDK = require('@ethoprotocol/sdk');
 const ethofs = ethofsSDK();
@@ -214,6 +215,7 @@ async function update1hrsDatabase() {
   let sql;
   let prevrow, rows;
   let wETHO;
+  let wETHOBSC=[];
   let stats;
   
   // Reduce database to 720 entries
@@ -293,11 +295,40 @@ async function update1hrsDatabase() {
             wETHO.transfersCount = prevrow[0].wetho_transfersCount;
             wETHO.holdersCount = prevrow[0].wetho_holdersCount;
           })
-        
+  
         logger.info("#server.app.update1hrsdatabase: wETHO totalSupply=%s", wETHO.totalSupply);
         logger.info("#server.app.update1hrsdatabase: wETHO wetho_transfersCount=%s", wETHO.transfersCount);
         logger.info("#server.app.update1hrsdatabase: wETHO wetho_holdersCount=%s", wETHO.holdersCount);
+  
+        logger.info("#server.app.update1hrsdatabase: BSC scraping");
+  
+        await got('https://bscscan.com/token/0x48b19b7605429acaa8ea734117f39726a9aab1f9')
+          .then((res) => {
+            let result;
+            const $=cheerio.load(res.body);
+            const list=[];
+            const search=$('div[class="card h-100"]').find('Holders').each(function (index, element) {
+              if ($(element)!="")
+                list.push($(element));
+            });
+            console.dir(list);
+            wETHOBSC.totalsupply=0;
+            wETHOBSC.transfersCount=0;
+            wETHOBSC.holdersCount=0;
+  
+          })
+          .catch((error) => {
+            logger.error("#server.app.update1hrsdatabase: Can't fetch data: Error: %s", error);
+            wETHO.totalSupply = prevrow[0].wetho_totalSupply;
+            wETHO.transfersCount = prevrow[0].wetho_transfersCount;
+            wETHO.holdersCount = prevrow[0].wetho_holdersCount;
+          })
         
+        logger.info("#server.app.update1hrsdatabase: wETHOBSC totalSupply=%s", wETHOBSC.totalsupply);
+        logger.info("#server.app.update1hrsdatabase: wETHOBSC wetho_transfersCount=%s", wETHOBSC.transfersCount);
+        logger.info("#server.app.update1hrsdatabase: wETHOBSC wetho_holdersCount=%s", wETHOBSC.holdersCount);
+  
+  
         let wETHO_holder;
         let exchange_kucoin = 0;
         await got('https://api.ethplorer.io/getTopTokenHolders/0x99676c9fA4c77848aEb2383fCFbD7e980dC25027?apiKey=' + config.ETHPLORERKEY)
