@@ -357,12 +357,46 @@ router.get('/dash_overview', async function(req, res, next) {
             ref_30d=inforows[lastElement_30d-1];
           }
   
+          // Create chart for dev account
+          let faucetaccount_30d=[];
+          let labels_30d=[];
+          let i;
+          for (i = 0; i < lastElement_30d; i++) {
+            if(i<inforows.length) {
+              faucetaccount_30d[i] = inforows[i].etho_faucetfund/100;
+              labels_30d.push(-i + " hr");
+            }
+          }
+  
+          let chartobj2c = {
+            type: 'line',
+            data: {
+              labels:
+              labels_30d,
+      
+              datasets:
+                [{
+                  'label': 'Dev account',
+                  data: faucetaccount_30d,
+                  backgroundColor: 'rgb(87,190,194)',
+                  fill: true
+                }]
+      
+            },
+            options: {
+              responsive: true
+            }
+          };
+  
+          let content2c;
+          content2c = "<canvas id='chartjs-2c' class='chartjs'></canvas>";
+          content2c += "<script>new Chart(document.getElementById('chartjs-2c')," + JSON.stringify(chartobj2c) + ");</script>";
+  
+  
   
   
           // Create chart for dev account
             let devaccount_30d=[];
-            let labels_30d=[];
-            let i;
             for (i = 0; i < lastElement_30d; i++) {
               if(i<inforows.length) {
                 devaccount_30d[i] = inforows[i].etho_devfund;
@@ -445,7 +479,8 @@ router.get('/dash_overview', async function(req, res, next) {
                 title: 'ETHO | Overview',
                 data: data,
                 chart1: content1,
-                chart2b: content2b,
+              chart2b: content2b,
+              chart2c: content2c,
                 chart3: content3
             });
         })
@@ -907,7 +942,7 @@ router.get('/dash_richlist', async function(req, res, next) {
     
     pool.query(vsql)
         .then(async (inforows) => {
-            let supply = inforows[0].coin_1_supply;
+            let supply = inforows[0].coin_1_totalsupply;
             let tablesAsJson = JSON.parse(inforows[0].etho_richlist);
             let i;
             let top50share = [];
@@ -1296,12 +1331,14 @@ router.get('/dash_google', async function(req, res, next) {
 router.get('/dash_financial', function(req, res, next) {
     let data = [];
     let bd = [];
+    let totalSupply;
     
     (async () => {
       await got('https://api.ethoprotocol.com/api?module=basic&action=totalsupply')
         .then((body) => {
           logger.info("Body %s", body.body); // Print the json response
           bd = JSON.parse(body.body);
+          totalSupply=bd.TotalSupply;
           data.totalsupply = MISC_numberFormating(bd.TotalSupply);
         })
         .catch((error) => {
@@ -1329,7 +1366,7 @@ router.get('/dash_financial', function(req, res, next) {
                 if (inforows!=undefined) {
                     // Generate pie chart
                     let marketcaps = [];
-                    marketcaps.push(Math.round(inforows[0].coin_1_quote * inforows[0].coin_1_supply / 1E4) / 100);
+                    marketcaps.push(Math.round(inforows[0].coin_1_quote * totalSupply / 1E4) / 100);
                     marketcaps.push(Math.round(inforows[0].coin_2_quote * inforows[0].coin_2_supply / 1E4) / 100);
                     marketcaps.push(Math.round(inforows[0].coin_3_quote * inforows[0].coin_3_supply / 1E4) / 100);
                     marketcaps.push(Math.round(inforows[0].coin_4_quote * inforows[0].coin_4_supply / 1E4) / 100);
@@ -1462,7 +1499,7 @@ router.get('/dash_financial', function(req, res, next) {
                     inforows[0].coin_3_quote = Math.trunc(inforows[0].coin_3_quote * 10000) / 10000;
                     inforows[0].coin_4_quote = Math.trunc(inforows[0].coin_4_quote * 10000) / 10000;
   
-                    inforows[0].coin_1_marketcap = Math.round(inforows[0].coin_1_quote*inforows[0].coin_1_supply/1E4) /100 ;
+                    inforows[0].coin_1_marketcap = Math.round(inforows[0].coin_1_quote*totalSupply/1E4) /100 ;
                     inforows[0].coin_2_marketcap = Math.round(inforows[0].coin_2_quote*inforows[0].coin_2_supply/1E4) /100 ;
                     inforows[0].coin_3_marketcap = Math.round(inforows[0].coin_3_quote*inforows[0].coin_3_supply/1E4) /100 ;
                     inforows[0].coin_4_marketcap = Math.round(inforows[0].coin_4_quote*inforows[0].coin_4_supply/1E4) /100 ;
@@ -1475,12 +1512,12 @@ router.get('/dash_financial', function(req, res, next) {
                     inforows[0].coin_4_percent1d = Math.round(inforows[0].coin_4_percent1d/100);
                     inforows[0].coin_4_percent30d = Math.round(inforows[0].coin_4_percent30d/100);
                     
-                    inforows[0].format_coin_1_supply = MISC_numberFormating(parseInt(inforows[0].coin_1_supply));
+                    inforows[0].format_coin_1_supply = data.totalsupply;
                     inforows[0].format_coin_2_supply = MISC_numberFormating(parseInt(inforows[0].coin_2_supply));
                     inforows[0].format_coin_3_supply = MISC_numberFormating(parseInt(inforows[0].coin_3_supply));
                     inforows[0].format_coin_4_supply = MISC_numberFormating(parseInt(inforows[0].coin_4_supply));
                     
-                    inforows[0].norm_coin_1_supply = Math.round(10*inforows[0].coin_1_supply/inforows[0].coin_1_supply)/10;
+                    inforows[0].norm_coin_1_supply = Math.round(1);
                     inforows[0].norm_coin_2_supply = Math.round(10*inforows[0].coin_2_supply/inforows[0].coin_1_supply)/10;
                     inforows[0].norm_coin_3_supply = Math.round(10*inforows[0].coin_3_supply/inforows[0].coin_1_supply)/10;
                     inforows[0].norm_coin_4_supply = Math.round(10*inforows[0].coin_4_supply/inforows[0].coin_1_supply)/10;
@@ -1570,8 +1607,8 @@ router.get('/dash_cmctrending', function(req, res, next) {
                     // Generate chart
                     let watchlist = [];
                     let i;
-                    for (i=0;i<inforows.length;i++) {
-                        if (inforows[i].etho_watchlist==null)
+                    for (i=0;i<24;i++) {
+                        if (inforows[i].etho_watchlist==undefined)
                             inforows[i].etho_watchlist=10600;
                     }
                     for (i=0;i<lastElement_24hrs;i++) {

@@ -54,7 +54,7 @@ global.email = new Email({
 
 // Define the globals
 global.debugon=true;
-global.version="2.00";
+global.version="2.01";
 
 
 // Init database
@@ -136,6 +136,8 @@ app.use(function(req, res, next) {
 // error handler
 app.use(function(err, req, res, next) {
   // set locals, only providing error in development
+  logger.error('#server.app.use: Error %s', err.message);
+  
   res.locals.message = err.message;
   res.locals.error = config.development ? err : {};
   
@@ -233,6 +235,13 @@ async function update1hrsDatabase() {
   logger.info("#server.app.update1hrsdatabase: %s", vsql);
   await pool.query(vsql)
     .then(async (prevrow) => {
+      if (prevrow.length==0) {
+        let preset={
+          secs: 3600,
+        }
+        logger.info("#server.app.update1hrsdatabase: Server was offline and no older data is available.");
+        prevrow.push(preset);
+      }
       logger.info('#server.app.update1hrsDatabase: Timeout %s', prevrow[0].secs);
       if (prevrow[0].secs > 3500 || config.development) {
         
@@ -302,27 +311,31 @@ async function update1hrsDatabase() {
   
         logger.info("#server.app.update1hrsdatabase: BSC scraping");
   
-        await got('https://bscscan.com/token/0x48b19b7605429acaa8ea734117f39726a9aab1f9')
-          .then((res) => {
-            let result;
-            const $=cheerio.load(res.body);
-            const list=[];
-            const search=$('div[class="card h-100"]').find('Holders').each(function (index, element) {
-              if ($(element)!="")
-                list.push($(element));
-            });
-            console.dir(list);
-            wETHOBSC.totalsupply=0;
-            wETHOBSC.transfersCount=0;
-            wETHOBSC.holdersCount=0;
-  
-          })
-          .catch((error) => {
-            logger.error("#server.app.update1hrsdatabase: Can't fetch data: Error: %s", error);
-            wETHO.totalSupply = prevrow[0].wetho_totalSupply;
-            wETHO.transfersCount = prevrow[0].wetho_transfersCount;
-            wETHO.holdersCount = prevrow[0].wetho_holdersCount;
-          })
+        wETHOBSC.totalsupply=0;
+        wETHOBSC.transfersCount=0;
+        wETHOBSC.holdersCount=0;
+        
+        // await got('https://bscscan.com/token/0x48b19b7605429acaa8ea734117f39726a9aab1f9')
+        //   .then((res) => {
+        //     let result;
+        //     const $=cheerio.load(res.body);
+        //     const list=[];
+        //     const search=$('div[class="card h-100"]').find('Holders').each(function (index, element) {
+        //       if ($(element)!="")
+        //         list.push($(element));
+        //     });
+        //     console.dir(list);
+        //     wETHOBSC.totalsupply=0;
+        //     wETHOBSC.transfersCount=0;
+        //     wETHOBSC.holdersCount=0;
+        //
+        //   })
+        //   .catch((error) => {
+        //     logger.error("#server.app.update1hrsdatabase: Can't fetch data: Error: %s", error);
+        //     wETHO.totalSupply = prevrow[0].wetho_totalSupply;
+        //     wETHO.transfersCount = prevrow[0].wetho_transfersCount;
+        //     wETHO.holdersCount = prevrow[0].wetho_holdersCount;
+        //   })
         
         logger.info("#server.app.update1hrsdatabase: wETHOBSC totalSupply=%s", wETHOBSC.totalsupply);
         logger.info("#server.app.update1hrsdatabase: wETHOBSC wetho_transfersCount=%s", wETHOBSC.transfersCount);
@@ -423,6 +436,7 @@ async function update1hrsDatabase() {
         let etho_devfund = 0;
         let etho_devfund2 = 0;
         let etho_masterfund = 0;
+        let etho_faucetfund = 0;
         logger.info("#server.app.update1hrsDatabase: Fetching data from exchanges...");
         await got('https://explorer.ethoprotocol.com/api?module=account&action=eth_get_balance&address=0xFBd45D6ED333c4ae16d379ca470690E3F8d0D2a2')
           .then((res) => {
@@ -483,7 +497,16 @@ async function update1hrsDatabase() {
             logger.info("#server.app.udate1hrsDatabase: %s", error);
             etho_masterfund = prevrow[0].etho_masterfund;
           })
-        
+  
+        await getBalance('0xE6155872B3Aa90F156f87D389caeA26D577BE459')
+          .then((res) => {
+            etho_faucetfund = parseInt(res / 1E16);
+            logger.info("Faucetfund: %s ETHO", etho_faucetfund); // Print the json response
+          })
+          .catch((error) => {
+            logger.info("#server.app.udate1hrsDatabase: %s", error);
+            etho_faucitfund = prevrow[0].etho_faucetfund;
+          })
         
         await got('https://explorer.ethoprotocol.com/api?module=account&action=eth_get_balance&address=0xe82e114833c558496b7d2405584c5a2286b9170e')
           .then((res) => {
@@ -501,6 +524,7 @@ async function update1hrsDatabase() {
         logger.info("#server.app.update1hrsDatabase: %s", exchange_probit);
         logger.info("#server.app.update1hrsDatabase: %s", etho_devfund);
         logger.info("#server.app.update1hrsDatabase: %s", etho_devfund2);
+        logger.info("#server.app.update1hrsDatabase: %s", etho_faucetfund);
         logger.info("#server.app.update1hrsDatabase: %s", etho_masterfund);
   
         logger.info("#server.app.update1hrsDatabase: Fetch diff and hashrate");
@@ -559,11 +583,15 @@ async function update1hrsDatabase() {
                     case '0x930e5e100489069B088e6E2f26f4CB17de4be298':
                       break;
                     default:
+                      let addr;
+                      if(tablesAsJson[0][i].Address.slice(0, 2)=='0x') {
+                        addr=tablesAsJson[0][i].Address.slice(0, 42);
+                      } else {
+                        addr=tablesAsJson[0][i].Address.split('\n')[0];
+                      }
                       etho_richlist.push({
-                        add: tablesAsJson[0][i].Address.slice(0, 42),
-                        bal: parseInt(tablesAsJson[0][i]['Balance (ETHO)'].replace(/,/g, '')),
-                        li: tablesAsJson[0][i]['First In'],
-                        lo: tablesAsJson[0][i]['Last Out']
+                        add: addr,
+                        bal: parseInt(tablesAsJson[0][i].Balance.replace(/,/g, '').split('.'))
                       });
                       break;
                   }
@@ -650,7 +678,7 @@ async function update1hrsDatabase() {
                       "etho_richlist, " +
                       "etho_gatewaynode_reward, etho_masternode_reward, etho_servicenode_reward, " +
                       "wetho_totalSupply, wetho_tranfersCount, wetho_holdersCount, " +
-                      "socialDiscord_members, etho_masterfund, etho_devfund2, date) VALUES ("
+                      "socialDiscord_members, etho_masterfund, etho_devfund2, etho_faucetfund, date) VALUES ("
                       + jsonarr.data.ETHO.id + ",'" + jsonarr.data.ETHO.name + "','" + jsonarr.data.ETHO.symbol + "', " + jsonarr.data.ETHO.cmc_rank + ", " + jsonarr.data.ETHO.num_market_pairs + ", " + jsonarr.data.ETHO.circulating_supply + ", " + jsonarr.data.ETHO.total_supply+ ", " + jsonarr.data.ETHO.quote.USD.price + ", " + Math.round(jsonarr.data.ETHO.quote.USD.percent_change_24h * 100) + ", " + Math.round(jsonarr.data.ETHO.quote.USD.percent_change_7d * 100) + ", " + Math.round(jsonarr.data.ETHO.quote.USD.percent_change_30d * 100) + ", " +
                       +jsonarr.data.FIL.id + ",'" + jsonarr.data.FIL.name + "','" + jsonarr.data.FIL.symbol + "', " + jsonarr.data.FIL.cmc_rank + ", " + jsonarr.data.FIL.num_market_pairs + ", " + jsonarr.data.FIL.circulating_supply + ", " + jsonarr.data.FIL.quote.USD.price + "," + Math.round(jsonarr.data.FIL.quote.USD.percent_change_24h * 100) + ", " + Math.round(jsonarr.data.FIL.quote.USD.percent_change_7d * 100) + ", " + Math.round(jsonarr.data.FIL.quote.USD.percent_change_30d * 100) + ", " +
                       +jsonarr.data.SC.id + ",'" + jsonarr.data.SC.name + "','" + jsonarr.data.SC.symbol + "', " + jsonarr.data.SC.cmc_rank + ", " + jsonarr.data.SC.num_market_pairs + ", " + jsonarr.data.SC.circulating_supply + ", " + jsonarr.data.SC.quote.USD.price + "," + Math.round(jsonarr.data.SC.quote.USD.percent_change_24h * 100) + ", " + Math.round(jsonarr.data.SC.quote.USD.percent_change_7d * 100) + ", " + Math.round(jsonarr.data.SC.quote.USD.percent_change_30d * 100) + ", " +
@@ -661,7 +689,7 @@ async function update1hrsDatabase() {
                       hashrate + "," + difficulty + "," +
                       exchange_kucoin + "," + exchange_stex + "," + exchange_graviex + "," + exchange_mercatox + "," + exchange_probit + "," + etho_devfund + ",'" + JSON.stringify(etho_richlist) + "'," + Math.round(stats.gatewaynode_reward * 10) + "," + Math.round(stats.masternode_reward * 10) + "," + Math.round(stats.servicenode_reward * 10) + ",'" +
                       wETHO.totalSupply + "'," + wETHO.transfersCount + "," + wETHO.holdersCount + "," +
-                      discordMembers + "," + etho_masterfund + "," + etho_devfund2 + ",'" + pool.mysqlNow() + "')";
+                      discordMembers + "," + etho_masterfund + "," + etho_devfund2 + "," + etho_faucetfund + ",'" + pool.mysqlNow() + "')";
                     await pool.query(sql)
                       .then(async (row) => {
                         logger.info('#server.app.update1hrsDatabase: New dataset.');
