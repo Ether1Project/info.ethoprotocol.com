@@ -37,6 +37,7 @@ router.get('/', function(req, res, next) {
             logger.info("#server.routes.index.get: %s", req.headers.host);
             res.render('index', {
                 version: version,
+                date: yeardate,
                 data: data,
                 title: 'ETHO | Coin dashboard'
             });
@@ -476,6 +477,7 @@ router.get('/dash_overview', async function(req, res, next) {
     
             res.render('dash_overview', {
                 version: version,
+                year: yeardate,
                 title: 'ETHO | Overview',
                 data: data,
                 chart1: content1,
@@ -499,6 +501,7 @@ router.get('/dash_activity', async function(req, res, next) {
     
     res.render('dash_activity', {
         version: version,
+        year: yeardate,
         title: 'ETHO | Activity',
         data: data
     });
@@ -638,6 +641,7 @@ router.get('/dash_social', async function(req, res, next) {
             
             res.render('dash_social', {
                 version: version,
+                year: yeardate,
                 title: 'ETHO | Social',
                 data: data,
                 chart1_24hrs: content1_24hrs,
@@ -911,6 +915,7 @@ router.get('/dash_wetho', async function(req, res, next) {
     
             res.render('dash_wetho', {
                 version: version,
+                year: yeardate,
                 title: 'ETHO | Wrapped ETHO',
                 data: data,
                 chart1_24hrs: content1_24hrs,
@@ -1041,6 +1046,7 @@ router.get('/dash_richlist', async function(req, res, next) {
     
             res.render('dash_richlist', {
                 version: version,
+                year: yeardate,
                 title: 'ETHO | Richlist dashboard',
                 data: data,
                 chart1: content1,
@@ -1104,6 +1110,7 @@ router.get('/dash_ipfs', async function(req, res, next) {
     
             res.render('dash_ipfs', {
                 version: version,
+                year: yeardate,
                 title: 'ETHO | IPFS dashboard',
                 data: data,
             });
@@ -1278,6 +1285,7 @@ router.get('/dash_exchanges', async function(req, res, next) {
     
             res.render('dash_exchanges', {
                 version: version,
+                year: yeardate,
                 title: 'ETHO | Exchange dashboard',
                 data: data[0],
                 chart1: content,
@@ -1531,6 +1539,7 @@ router.get('/dash_financial', function(req, res, next) {
                     
                     res.render('dash_financial', {
                         version: version,
+                        year: yeardate,
                         title: 'ETHO | Financial dashboard',
                         data: data,
                         db: inforows[0],
@@ -1543,6 +1552,7 @@ router.get('/dash_financial', function(req, res, next) {
                 else {
                     res.render('index', {
                         version: version,
+                        year: yeardate,
                         title: 'ETHO | Financial dashboard'
                     });
                     
@@ -1574,6 +1584,7 @@ router.get('/dash_financial2', async function(req, res, next) {
     
             res.render('dash_financial2', {
                 version: version,
+                year: yeardate,
                 title: 'ETHO | Financial 2 dashboard',
                 data: data
             });
@@ -1990,6 +2001,7 @@ router.get('/dash_cmctrending', function(req, res, next) {
     
                     res.render('dash_cmctrending', {
                         version: version,
+                        year: yeardate,
                         title: 'ETHO | ETHO trending',
                         data: data,
                         db: inforows[0],
@@ -2007,6 +2019,7 @@ router.get('/dash_cmctrending', function(req, res, next) {
                 else {
                     res.render('index', {
                         version: version,
+                        year: yeardate,
                         title: 'ETHO | ETHO trending'
                     });
                     
@@ -2651,6 +2664,7 @@ router.get('/dash_nodes', function(req, res, next) {
     
                 res.render('dash_nodes', {
                     version: version,
+                    year: yeardate,
                     title: 'ETHO | Node dashboard',
                     ethofsstats: stats,
                     data: data,

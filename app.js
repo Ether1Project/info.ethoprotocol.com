@@ -55,6 +55,7 @@ global.email = new Email({
 // Define the globals
 global.debugon=true;
 global.version="2.01";
+global.yeardate="2023";
 
 
 // Init database
