@@ -196,18 +196,91 @@ async function read_repos(octokit, res, page, fullname) {
   return(res);
 }
 
-async function countGithub(octokit, repos) {
+async function countGithub(octokit, request, repos) {
   console.log(repos);
-  await octokit.request('GET /repos/{owner}/{repo}/stats/participation', {
+  await octokit.request(request, {
     owner: "Ether1Project",
     repo: repos
   }).then(async (ok) => {
-    console.log(ok.data.all);
+    resolve(ok);
   })
     .catch((error)=>{
       logger.error('#server.app.read_repos: Error %s', error);
+      reject(error);
     })
 }
+async function orgGithub(octokit) {
+  let github_stats = [];
+  github_stats.total_repos=0;
+  github_stats.total_private=0;
+  github_stats.total_public=0;
+  github_stats.repos = [];
+  github_stats.activity = Array(52).fill(0);
+  
+  let i=0, k=0;
+  let page=1;
+  let ongoing=true;
+  while(ongoing) {
+    console.log("Page: %s",page);
+    await octokit.request('/orgs/{orgs}/repos', {
+      orgs: "Ether1Project",
+      headers: {
+        'X-GitHub-Api-Version': '2022-11-28'
+      },
+      per_page: 100,
+      page: page++,
+      sort: 'updated',
+      type: 'all',
+      direction: 'desc'
+    }).then(async (ok) => {
+      github_stats.total_repos+=ok.data.length;
+      for (i = 0; i < ok.data.length; i++) {
+        if (ok.data[i].private)
+          github_stats.total_private++;
+        else
+          github_stats.total_public++;
+        github_stats.repos.push({
+          "name": ok.data[i].name,
+          "private": ok.data[i].private,
+          "owner": ok.data[i].owner.login,
+          "created": ok.data[i].created_at,
+          "updated": ok.data[i].updated_at,
+          "description": ok.data[i].description
+        })
+        await octokit.request('/repos/{owner}/{repo}/stats/participation', {
+          owner: "Ether1Project",
+          repo: ok.data[i].name
+        }).then(async (ret) => {
+          for (k=0;k<ret.length;k++) {
+            github_stats.activity[k]+=ret.data.all[k];
+          }
+        })
+          .catch((error)=>{
+            logger.error('#server.app.read_repos: Error %s', error);
+          })
+  
+      }
+      if (ok.data.length<100)
+        ongoing=false;
+    })
+      .catch((error) => {
+        logger.error('#server.app.read_repos: Error %s', error);
+      })
+  }
+  for (i=0;i<111;i++)
+    console.log(github_stats.repos[i],",");
+  console.log("Activity");
+  for (i=0;i<52;i++) {
+    console.log(github_stats.activity[i]);
+  }
+}
+
+console.log("Github");
+const octokit = new Octokit({
+  auth: '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'
+})
+
+orgGithub(octokit);
 
 
 // Aimed to be run every 24 hours
@@ -280,19 +353,19 @@ async function update1hrsDatabase() {
         */
         
         let discordMembers = 0;
-        // await got('http://95.111.230.192:8080/rest/guild')
-        //     .then((res) => {
-        //         let result = JSON.parse(res.body);
-        //         for (i = 0; i < result.guild.length; i++) {
-        //             if (result.guild[i].guildId == '426241424229662721') {
-        //                 discordMembers = result.guild[i].guildMember;
-        //                 break;
-        //             }
-        //         }
-        //         logger.info('#server.app.update1hrsDatabase: Discord members %s', discordMembers);
-        //     }).catch((e)=> {
-        //       logger.error("Can't fetch discord data: %s", e);
-        //   });
+        await got('http://95.111.230.192:8080/rest/guild')
+             .then((res) => {
+                 let result = JSON.parse(res.body);
+                 for (i = 0; i < result.guild.length; i++) {
+                     if (result.guild[i].guildId == '426241424229662721') {
+                         discordMembers = result.guild[i].guildMember;
+                         break;
+                     }
+                 }
+                 logger.info('#server.app.update1hrsDatabase: Discord members %s', discordMembers);
+             }).catch((e)=> {
+               logger.error("Can't fetch discord data: %s", e);
+           });
   
   
         await got('https://api.ethplorer.io/getTokenInfo/0x99676c9fa4c77848aeb2383fcfbd7e980dc25027?apiKey=' + config.ETHPLORERKEY)
@@ -351,8 +424,13 @@ async function update1hrsDatabase() {
             for (i = 0; i < wETHO_holder.holders.length; i++) {
               if (wETHO_holder.holders[i].address == "0xa1d8d972560c2f8144af871db508f0b0b10a3fbf" ||
                 wETHO_holder.holders[i].address == "0x495f8bdacfbe7347131b7f8fd240d903daa2cc44" ||
-                wETHO_holder.holders[i].address == "0xd6216fc19db775df9774a6e33526131da7d19a2c") {
+                wETHO_holder.holders[i].address == "0xd6216fc19db775df9774a6e33526131da7d19a2c" ||
+                wETHO_holder.holders[i].address == "0x738cf6903e6c4e699d1c2dd9ab8b67fcdb3121ea" ||
+                wETHO_holder.holders[i].address == "0xf16e9b0d03470827a95cdfd0cb8a8a3b46969b91") {
                 exchange_kucoin += wETHO_holder.holders[i].balance / 1E18;
+                console.log(wETHO_holder.holders[i].address);
+                console.log(wETHO_holder.holders[i].balance);
+                
               }
             }
           })
@@ -651,7 +729,7 @@ async function update1hrsDatabase() {
               
               const vgmUrl = 'https://coinmarketcap.com/currencies/ether-1/';
               await got(vgmUrl).then(async (response) => {
-                var rx = /On ([0-9,]*) watchlists/g;
+                var rx = /\"watchCount\":\"([0-9]*)\"/g;
                 var arr = rx.exec(response.body);
                 var numb = arr[1].match(/\d/g);
                 let etho_watchlist = numb.join("");

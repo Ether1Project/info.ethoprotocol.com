@@ -41,7 +41,10 @@ router.get('/', function(req, res, next) {
                 data: data,
                 title: 'ETHO | Coin dashboard'
             });
-        });
+        })
+      .catch(async (error) => {
+        logger.error('#server.route: Error %s', error);
+      })
 });
 
 /* GET home page. */
@@ -559,17 +562,23 @@ router.get('/dash_social', async function(req, res, next) {
             
             let i;
             for (i = 0; i < lastElement_24hrs; i++) {
-                memberList[i] = inforows[i].socialDiscord_members;
+                if(i<inforows.length) {
+                  memberList[i] = inforows[i].socialDiscord_members;
+                }
             }
             
             for (i = 0; i < lastElement_7d; i++) {
+              if(i<inforows.length) {
                 memberList_7d[i] = inforows[i].socialDiscord_members;
                 labels_7d.push(-i + " hr");
+              }
             }
             
             for (i = 0; i < inforows.length; i++) {
+              if(i<inforows.length) {
                 memberList_30d[i] = inforows[i].socialDiscord_members;
                 labels_30d.push(-i + "hr");
+              }
             }
             
             
@@ -2049,22 +2058,29 @@ router.get('/dash_nodes', function(req, res, next) {
             stats.gatewaynode_reward=Math.round(100*result.gatewaynode_reward)/100;
             stats.masternode_reward=Math.round(100*result.masternode_reward)/100;
             stats.servicenode_reward=Math.round(100*result.servicenode_reward)/100;
+            stats.gatewaynode_roi=Math.round(100*30000/(stats.gatewaynode_reward*365))/100;
+            stats.masternode_roi=Math.round(100*15000/(stats.masternode_reward*365))/100;
+            stats.servicenode_roi=Math.round(100*5000/(stats.servicenode_reward*365))/100;
         }).catch((err) => {
             //handle error here
             stats.gatewaynode_reward="Not available";
             stats.masternode_reward="Not available";
-            stats.servicenode_reward="Not available"
+            stats.servicenode_reward="Not available";
+            stats.gatewaynode_roi=0;
+            stats.masternode_roi=0;
+            stats.servicenode_roi=0;
             logger.error('#server.routes.index.dash_nodes: Error %s', err);
     
         });
         
-        console.log(stats);
+        console.log("Stats: %s",stats);
         
         
         let vsql="SELECT * FROM info ORDER BY id DESC LIMIT " + lastElement_30d;
         
         pool.query(vsql)
             .then(async (inforows) => {
+                console.log(inforows[0]);
                 // Generate pie chart
                 let nodesList = [];
                 nodesList.push(inforows[0].etho_active_gatewaynodes);
@@ -2149,12 +2165,13 @@ router.get('/dash_nodes', function(req, res, next) {
               }
   
               for (i = 0; i < lastElement_24hrs; i++) {
-                gatewayList[i] = inforows[i].etho_active_gatewaynodes-ref_24hrs.etho_active_gatewaynodes;
-                masterList[i] = inforows[i].etho_active_masternode-ref_24hrs.etho_active_masternode;
-                serviceList[i] = inforows[i].etho_active_servicenodes-ref_24hrs.etho_active_servicenodes;
-                lockedList[i] = parseInt(inforows[i].etho_active_gatewaynodes*30000)+ parseInt(inforows[i].etho_active_masternode*15000)+ parseInt(inforows[i].etho_active_servicenodes*5000);
-    
-              }
+                if (i<inforows.length) {
+                  gatewayList[i] = inforows[i].etho_active_gatewaynodes - ref_24hrs.etho_active_gatewaynodes;
+                  masterList[i] = inforows[i].etho_active_masternode - ref_24hrs.etho_active_masternode;
+                  serviceList[i] = inforows[i].etho_active_servicenodes - ref_24hrs.etho_active_servicenodes;
+                  lockedList[i] = parseInt(inforows[i].etho_active_gatewaynodes * 30000) + parseInt(inforows[i].etho_active_masternode * 15000) + parseInt(inforows[i].etho_active_servicenodes * 5000);
+                }
+             }
   
               for (i = 0; i < lastElement_7d; i++) {
                     if (i<inforows.length) {
@@ -2172,7 +2189,6 @@ router.get('/dash_nodes', function(req, res, next) {
                     masterList_30d[i]  = inforows[i].etho_active_masternode-ref_30d.etho_active_masternode;
                     serviceList_30d[i] = inforows[i].etho_active_servicenodes-ref_30d.etho_active_servicenodes;
                     lockedList_30d[i] = parseInt(inforows[i].etho_active_gatewaynodes*30000)+ parseInt(inforows[i].etho_active_masternode*15000)+ parseInt(inforows[i].etho_active_servicenodes*5000);
-    
                     labels_30d.push(-i + "hr");
                   }
                 }

@@ -31,6 +31,9 @@ block content
                         h1.text-white= db.etho_active_gatewaynodes
                         span.progress-description.text-white= ethofsstats.gatewaynode_reward
                             |  ETHO per Day
+                        span.progress-description.text-white= ethofsstats.gatewaynode_roi
+                            |  % ROI
+
                     // /.info-box-content
                 // /.info-box
             // /.col
@@ -43,6 +46,8 @@ block content
                         h1.text-white= db.etho_active_masternode
                         span.progress-description.text-white= ethofsstats.masternode_reward
                             |  ETHO per Day
+                        span.progress-description.text-white= ethofsstats.masternode_roi
+                            |  % ROI
 
                     // /.info-box-content
                 // /.info-box
@@ -56,6 +61,9 @@ block content
                         h1.text-white= db.etho_active_servicenodes
                         span.progress-description.text-white= ethofsstats.servicenode_reward
                             |  ETHO per Day
+                        span.progress-description.text-white= ethofsstats.servicenode_roi
+                            |  % ROI
+
 
                     // /.info-box-content
                 // /.info-box
